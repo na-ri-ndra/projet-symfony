@@ -1,0 +1,120 @@
+{% extends 'admin.html.twig' %}
+
+{% block title %}Sélection des livres{% endblock %}
+
+{% block body %}
+
+<style>
+body {
+    margin-left: 1cm;
+    background-color: white;
+}
+.overflow-container {
+    max-height: 400px; /* Hauteur max visible */
+    overflow-y: auto; /* Scroll vertical */
+    border: 1px solid #ddd; /* Bordure pour le visuel */
+    padding: 10px;
+    background: #fff;
+}
+</style>
+
+<h3>Sélection des livres pour le membre {{ membre_id }}</h3>
+<p>Vous devez choisir {{ nombre_livres }} livre(s).</p>
+<form id="pretForm" method="POST" action="{{ path('pret_physique_confirmer') }}">
+    <input type="hidden" name="membre_id" value="{{ membre_id }}">
+    <input type="hidden" id="hiddenDatePret" name="date_pret">
+    <input type="hidden" id="hiddenDateRetour" name="date_retour_effectif">
+
+    <input type="text" id="searchInput" class="form-control mb-3" placeholder="Rechercher un livre...">
+
+    <div id="livresContainer" class="row mt-3 overflow-container">
+        {% for livre in livres %}
+            <div class="col-md-4 livre-item">
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h5 class="livre-titre">{{ livre.titre }}</h5>
+                        <p>{{ livre.auteur }}</p>
+                        <input type="checkbox" name="livres[]" value="{{ livre.id }}" data-titre="{{ livre.titre }}">
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <button type="button" id="openModalBtn" class="btn btn-success mt-3">Confirmer prêt</button>
+</form>
+<!-- Modal de confirmation -->
+<div class="modal fade" id="confirmPretModal" tabindex="-1" aria-labelledby="confirmPretLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmPretLabel">Confirmation du prêt</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p><strong>Membre :</strong> {{ membre_nom ?? '' }}</p>
+        <p><strong>Livres sélectionnés :</strong></p>
+        <ul id="listeLivresSelectionnes"></ul>
+
+        <div class="mb-3">
+          <label>Date de prêt :</label>
+          <input type="date" id="modalDatePret" class="form-control" name="date_pret" value="{{ 'now'|date('Y-m-d') }}" readonly>
+        </div>
+        <div class="mb-3">
+          <label>Date de retour :</label>
+          <input type="date" id="modalDateRetour" name="date_retour_effectif" class="form-control" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="validerPretBtn" class="btn btn-primary">Valider</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+document.getElementById('searchInput').addEventListener('input', function() {
+    const filter = this.value.toLowerCase();
+    const livres = document.querySelectorAll('#livresContainer .livre-item');
+
+    livres.forEach(livre => {
+        const titre = livre.querySelector('.livre-titre').textContent.toLowerCase();
+
+        if (titre.includes(filter)) {
+            livre.style.display = '';
+        } else {
+            livre.style.display = 'none';
+        }
+    });
+});
+</script>
+<script>
+document.getElementById('openModalBtn').addEventListener('click', function() {
+    const checkboxes = document.querySelectorAll('input[name="livres[]"]:checked');
+    const listeLivres = document.getElementById('listeLivresSelectionnes');
+    listeLivres.innerHTML = '';
+
+    checkboxes.forEach(cb => {
+        const li = document.createElement('li');
+        li.textContent = cb.dataset.titre;
+        listeLivres.appendChild(li);
+    });
+
+    if (checkboxes.length === 0) {
+        alert('Veuillez sélectionner au moins un livre.');
+        return;
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('confirmPretModal'));
+    modal.show();
+});
+
+document.getElementById('validerPretBtn').addEventListener('click', function() {
+    // Récupérer dates du modal et les mettre dans les champs hidden
+    document.getElementById('hiddenDatePret').value = document.getElementById('modalDatePret').value;
+    document.getElementById('hiddenDateRetour').value = document.getElementById('modalDateRetour').value;
+
+    document.getElementById('pretForm').submit();
+});
+</script>
+{% endblock %}

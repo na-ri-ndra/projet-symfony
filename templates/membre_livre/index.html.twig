@@ -1,0 +1,259 @@
+{% extends 'membres.html.twig' %}
+
+{% block title %}Hello MembreLivreController!{% endblock %}
+
+{% block body %}
+<style>
+/* Styles généraux pour le corps */
+/* Styles généraux pour le corps et les éléments de l'interface */
+body {
+    background-color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #4b3832;
+}
+
+h1 {
+    color: #3f1a01;
+    font-weight: bold;
+}
+
+.form-control {
+    border-color: #d2b48c;
+    color: #3f1a01;
+}
+
+.form-control:focus {
+    border-color: #3f1a01ff;
+    box-shadow: 0 0 0 0.25rem rgba(139, 69, 19, 0.25);
+}
+
+.btn-reservation {
+    background-color: #3f1a01ff;
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-reservation:hover {
+    background-color: #a0522d;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* Styles des cartes et de l'animation d'élargissement */
+.livre-card-container {
+    transition: all 0.8s ease-in-out; /* Transition pour le déplacement des cartes */
+}
+
+.card {
+    color: #3f1a01ff; 
+    border: 1px solid #e9e7e6ff;
+    border-radius: 12px;
+    height: auto; /* Permet à la hauteur de s'adapter au contenu */
+    overflow: hidden;
+    position: relative;
+    transition: box-shadow 0.3s ease, height 0.8s ease-in-out; /* Ajout d'une transition pour la hauteur si nécessaire */
+}
+
+.card:hover {
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Flexbox pour le contenu de la carte et le résumé */
+.card-content-wrapper {
+    display: flex;
+    gap: 1rem;
+    transition: all 0.8s ease-in-out;
+}
+
+.card-main-content {
+    flex: 1 1 auto; 
+    transition: all 0.8s ease-in-out;
+}
+
+.card-resume {
+    flex: 0 0 0; /* Par défaut, le résumé prend 0 d'espace */
+    opacity: 0;
+    overflow: hidden;
+    transition: flex-basis 0.8s ease-in-out, opacity 0.8s ease-in-out;
+}
+
+.card-text {
+    margin-bottom: 0; 
+    line-height: 1.2;
+}
+
+/* État d'élargissement de la carte (survol) */
+.livre-card-container.expanded {
+    flex: 0 0 50%;
+    max-width: 50%;
+}
+
+.livre-card-container.expanded .card {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    z-index: 10;
+    /* Retirez les hauteurs fixes pour permettre un affichage fluide */
+
+}
+
+.livre-card-container.expanded .card-resume {
+    flex: 1 1 50%; /* Donne de l'espace au résumé */
+    opacity: 1;
+    overflow: visible;
+}
+/* Styles de la modale */
+.modal-content {
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background-color: #f1e9df;
+    border-bottom: 2px solid #3f1a01ff;
+    color: #3f1a01;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.modal-title {
+    color: #3f1a01;
+    font-weight: bold;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-footer .btn-success {
+    background-color: #3f1a01ff;
+    border-color: #3f1a01ff;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.modal-footer .btn-success:hover {
+    background-color: #6f4e37;
+    border-color: #6f4e37;
+}
+
+.modal-footer .btn-secondary {
+    background-color: #e9ecef;
+    border-color: #e9ecef;
+    color: #3f1a01;
+}
+</style>
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h1>Liste des livres</h1>
+    <div class="my-4 text-center">
+        {% if membre is defined and membre.a_reservation_active %}
+            <button class="btn btn-lg btn-secondary" disabled>
+                <i class="bi bi-cart-fill me-2"></i> Vous avez une réservation en cours
+            </button>
+            <p class="text-muted mt-2">Veuillez rendre vos livres ou annuler votre réservation pour en faire une nouvelle.</p>
+        {% else %}
+            <button class="btn btn-lg" style="background-color: #3f1a01ff; color: white;" data-bs-toggle="modal" data-bs-target="#reservationModal">
+                <i class="bi bi-cart-fill me-2"></i> Faire une réservation
+            </button>
+        {% endif %}
+    </div>
+    <!-- Barre de recherche à droite -->
+    <input type="text" id="searchInput" class="form-control w-50" placeholder="Rechercher..." onkeyup="filterLivre()">
+</div>
+<div class="row">
+    {% for livre in livres %}
+    <div class="col-md-3 mb-4 livre-card-container">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <h5 class="card-title">{{ livre.titre }}</h5>
+                <div class="card-content-wrapper">
+                    <div class="card-main-content">
+                        <p class="card-text">
+                            <strong>{{ livre.auteur }}</strong> <br>
+                            <strong>{{ livre.editeur }}</strong> <br>
+                            <strong>{{ livre.isbn }}</strong> <br>
+                            <strong>Nombre exemplaire : {{ livre.nombre_exemplaire }}</strong> <br>
+                            <strong>Étagère :</strong> {{ livre.code_etagere ?? 'Non assignée' }}<br>
+                        </p>
+                        
+                    </div>
+                </div>
+                <div class="card-resume"> 
+                            <p>{{ livre.resumer }}</p>
+                        </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <p>Aucun livre trouvé.</p>
+    {% endfor %}
+</div>
+<!-- 📦 Modal de sélection du nombre de livres -->
+<div class="modal fade" id="reservationModal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form action="{{ path('membre_reservation_nouvelle') }}" method="post">
+        <div class="modal-header">
+          <h5 class="modal-title" id="reservationModalLabel">Réserver des livres</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="nb_livre">Nombre de livres à réserver :</label>
+            <select name="nb_livre" id="nb_livre" class="form-select" required>
+              <option value="" disabled selected>Choisir...</option>
+              <option value="1">1 livre</option>
+              <option value="2">2 livres</option>
+              <option value="3">3 livres</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">OK</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const cardContainers = document.querySelectorAll('.livre-card-container');
+
+    cardContainers.forEach(container => {
+        container.addEventListener('mouseenter', () => {
+            cardContainers.forEach(otherContainer => {
+                if (otherContainer !== container) {
+                    otherContainer.classList.remove('expanded');
+                }
+            });
+            container.classList.add('expanded');
+        });
+
+        container.addEventListener('mouseleave', () => {
+            container.classList.remove('expanded');
+        });
+    });
+});
+</script>
+<script>
+    function filterLivre() {
+        const input = document.getElementById("searchInput");
+        const filter = input.value.toLowerCase();
+        const cards = document.querySelectorAll(".card");
+
+        cards.forEach(card => {
+            const titre = card.querySelector(".card-title")?.textContent.toLowerCase() || '';
+            const texte = card.querySelector(".card-text")?.textContent.toLowerCase() || '';
+
+            if (titre.includes(filter) || texte.includes(filter)) {
+                card.parentElement.style.display = ""; // Montre la carte
+            } else {
+                card.parentElement.style.display = "none"; // Cache la carte
+            }
+        });
+    }
+</script>
+{% endblock %}

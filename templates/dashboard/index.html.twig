@@ -1,0 +1,201 @@
+{% extends 'admin.html.twig' %}
+
+{% block title %}Hello DashboardController!{% endblock %}
+
+{% block body %}
+<style>
+body{
+    background-color : white;
+}
+    .dashboard-container {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: 20px;
+        background-color : white;
+    }
+
+    .rectangle {
+        width: 5cm;
+        height: 4cm;
+        border: 2px solid #e9e7e6ff;
+        border-radius: 8px;
+        box-shadow: 2px 2px 8px #3f1a01ff;
+        text-align: center;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .rectangle h2 {
+        font-size: 1.5em;
+        color:   #3f1a01ff;
+        margin-bottom: 10px;
+    }
+
+    .rectangle h3 {
+        font-size: 1.2em;
+        font-weight: bold;
+        color:   #3f1a01ff;
+    }
+    .chart-container {
+      position: relative;
+      height: 200px;
+      width: 200px;
+      margin: auto;
+    }
+    .card {
+      margin-top:1cm;
+      width:600px;
+      box-shadow: 2px 2px 8px #3f1a01ff;
+    }
+    .text-brown {
+      color: #3f1a01;
+    }
+</style>
+
+<div class="container">
+    <h1 class="mt-4 mb-4">Tableau de Bord</h1>
+    <div class="dashboard-container">
+        <div class="rectangle">
+            <i class="bi bi-book fs-1"></i>
+            <h2> Total des livres</h2>
+            <h3>{{ totalLivres }}</h3>
+        </div>
+        <div class="rectangle ">
+            <i class="bi bi-building fs-1"></i>
+            <h2>Étagères</h2>
+            <h3>{{ totalEtagere }}</h3>
+        </div>
+        <div class="rectangle">
+            <i class="bi bi-people fs-1"></i>
+            <h2>Membres</h2>
+            <h3>{{ totalMembre }}</h3>
+        </div>
+        <div class="rectangle">
+            <i class="bi bi-person-check fs-1"></i>
+            <h2>Membres Scolaire</h2>
+            <h3>{{ personneAutorisee }}</h3>
+        </div>
+        <div class="rectangle">
+            <i class="bi bi-journal-bookmark fs-1"></i>
+            <h2>Livres Réservés</h2>
+            <h3>{{ totalLivreReserver }}</h3>
+        </div>
+        <div class="rectangle">
+            <i class="bi bi-book-half fs-1"></i>
+            <h2>Livres Empruntés</h2>
+            <h3>{{ totalLivreEmprunte }}</h3>
+        </div>
+    </div>
+
+<div class="row g-2">
+    <div class="col-md-6">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 text-brown">Évolution des prêts et reservation(14 derniers jours)</h6>
+            </div>
+            <div class="card-body" style="height: 9cm;">
+                <canvas id="lineChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h6 class="mb-0 text-brown">Personnes autorisées</h6>
+            </div>
+            <div class="card-body" style="height: 9cm;">
+                <canvas id="pieChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</div>
+
+<script src="{{ asset('js/chart.umd.min.js') }}"></script>
+<script>
+const ctxLine = document.getElementById('lineChart').getContext('2d');
+
+const lineChart = new Chart(ctxLine, {
+    type: 'line',
+    data: {
+        labels: {{ labelsPret|json_encode|raw }},
+        datasets: [
+            {
+                label: 'Réservations',
+                data: {{ dataReserves|json_encode|raw }},
+                borderColor: '#3f1a01ff',
+                backgroundColor: 'rgba(63,26,1,0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 5
+            },
+            {
+                label: 'Prêts',
+                data: {{ dataPret|json_encode|raw }},
+                borderColor: '#e65e03ff',
+                backgroundColor: 'rgba(230,94,3,0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 5
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: 'Nombre de livres'
+                }
+            },
+            x: {
+                title: {
+                    display: true,
+                    text: 'Date'
+                },
+                ticks: {
+                    autoSkip: false // affiche toutes les dates
+                }
+            }
+        }
+    }
+});
+</script>
+
+<script>
+  const ctxPie = document.getElementById('pieChart').getContext('2d');
+
+  const totalPersonnesAutorisees = 100;  // exemple (personne_autorise)
+  const membresInscrits = 40;            // exemple (membre_bibliotheque)
+  const nonInscrits = totalPersonnesAutorisees - membresInscrits; 
+
+  const dataPie = {
+    labels: ['Personnes autorisées', 'Membres inscrits', 'Non inscrits'],
+    datasets: [{
+      data: [totalPersonnesAutorisees, membresInscrits, nonInscrits],
+      backgroundColor: ['#3f1a01', '#9b3f02ff', '#e65e03ff']
+    }]
+  };
+
+  new Chart(ctxPie, {
+    type: 'pie',
+    data: dataPie,
+    options: {
+      responsive: false,
+      plugins: {
+        legend: {
+          position: 'bottom'
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

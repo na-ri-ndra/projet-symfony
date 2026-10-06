@@ -1,0 +1,213 @@
+{# templates/admin/messages/index.html.twig #}
+
+{% extends 'admin.html.twig' %} {# Ou votre layout d'administration si vous en avez un #}
+
+{% block title %}Messages des Membres{% endblock %}
+
+{% block body %}
+
+<style>
+body {
+    margin-left: 1cm;
+    margin-right: 1cm;
+    background-color: white;
+}
+/* Tu pourrais aussi déplacer ces styles dans un fichier CSS externe comme public/css/chat.css */
+/* et l'inclure dans ton base.html.twig */
+/* Mais pour cet exemple, je les garde ici pour la clarté */
+.chat-message-bubble {
+    padding: 10px 15px;
+    border-radius: 20px;
+    max-width: 60%; /* Limite la largeur des bulles */
+    word-wrap: break-word; /* Casse les mots longs pour éviter le dépassement */
+}
+
+/* Styles pour les messages de l'administrateur (toi) */
+.chat-message-bubble.admin {
+    background-color: #8B4513; /* Couleur marron */
+    color: white;
+}
+
+/* Styles pour les messages du membre */
+.chat-message-bubble.membre {
+    background-color: rgb(235, 174, 131); /* Couleur plus claire pour les membres */
+    color: white; /* Pour le contraste, si le fond est clair, tu peux le changer à #333 */
+}
+
+/* Styles pour le nom de l'expéditeur dans la bulle */
+.chat-message-bubble .fw-bold {
+    font-size: 0.9em;
+}
+
+/* Styles pour le timestamp dans la bulle */
+.chat-message-bubble .text-light {
+    font-size: 0.75em;
+    opacity: 0.9 !important; /* Pour s'assurer que la couleur du texte est bien visible */
+}
+
+/* Styles pour la zone de défilement */
+#zone-messages {
+    max-height: 400px;
+    overflow-y: auto;
+}
+</style>
+
+<div class="row">
+    <!-- Colonne gauche : Liste des membres -->
+<div class="col-md-4">
+    <h5>Membres</h5>
+    <ul class="list-group">
+        {% for membre in membres %}
+            <a href="{{ path('app_admin_message', { membre_id: membre.id }) }}"
+                class="list-group-item list-group-item-action {% if membre.id == membre_id_selectionne %}active{% endif %}">
+                {{ membre.nom }}
+            </a>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Colonne droite : Historique + zone de saisie -->
+<div class="col-md-8">
+    {% if membre_id_selectionne %}
+        <h5 class="mb-3"> Historique des messages</h5>
+
+        <!-- Boîte des messages -->
+        <div class="chat-box mb-3" style="
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: white;">
+            {% for message in historique %}
+                {% if message.sender == 'membre' %}
+                    <div class="d-flex justify-content-start mb-2">
+                        <div class="p-2 shadow-sm"
+                             style="background-color: rgb(114, 79, 55); color: white; max-width: 60%; border-radius: 12px;">
+                            <strong>Membre :</strong><br>
+                            {{ message.contenu }}<br>
+                            <small class="text-muted">{{ message.date_envoi }}</small>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="d-flex justify-content-end mb-2">
+                        <div class="p-2 rounded shadow-sm"
+                             style="background-color: rgb(235, 174, 131); color: black; max-width: 60%; border-radius: 12px;">
+                            <strong>Moi(admin) :</strong><br>
+                            {{ message.contenu }}<br>
+                            <small class="text-light">{{ message.date_envoi }}</small>
+                        </div>
+                    </div>
+                {% endif %}
+            {% endfor %}
+            
+        </div>
+
+        <!-- ✅ Zone de saisie alignée à droite et de même largeur -->
+        <div class="d-flex justify-content-end">
+            <form method="POST" action="{{ path('admin_envoyer_message') }}" id="form-envoi-message" style="display: flex; width: 100%;">
+                <input type="hidden" id="membre_id_selectionne" name="membre_id" value="{{ membre_id_selectionne }}">
+                <textarea class="form-control me-2" id="contenu_message" name="contenu" rows="1"
+                        placeholder="Écrire un message..." style="resize: none; flex-grow: 1;"></textarea>
+                <button type="submit" class="btn" id="btn-envoyer" style="background-color:#8B4513;colore:white;">
+                    <i class="bi bi-send-fill"style="backgrund-color:#8B4513;color:white; font-size:30px;"></i>
+                </button>
+            </form>
+        </div>
+    {% else %}
+        <p>Sélectionnez un membre pour voir l'historique de conversation.</p>
+    {% endif %}
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formEnvoiMessage = document.getElementById('form-envoi-message');
+    const chatHistorique = document.getElementById('chat-historique');
+    const contenuMessageInput = document.getElementById('contenu_message');
+
+    // Fonction pour ajouter un message à la boîte de chat
+    function appendMessage(sender, contenu, dateEnvoi) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('d-flex', 'mb-2');
+
+        const bubbleDiv = document.createElement('div');
+        bubbleDiv.classList.add('p-2', 'rounded', 'shadow-sm');
+        bubbleDiv.style.maxWidth = '60%';
+        bubbleDiv.style.borderRadius = '12px';
+
+        if (sender === 'admin') {
+            messageDiv.classList.add('justify-content-end');
+            bubbleDiv.style.backgroundColor = 'rgb(235, 174, 131)'; // Couleur admin
+            bubbleDiv.style.color = 'black';
+            bubbleDiv.innerHTML = `
+                <strong>Moi(admin) :</strong><br>
+                ${contenu}<br>
+                <small class="text-light">${dateEnvoi}</small>
+            `;
+        } else { // Si c'est un message de membre, même si ça ne vient pas de cet envoi
+            messageDiv.classList.add('justify-content-start');
+            bubbleDiv.style.backgroundColor = 'rgb(114, 79, 55)'; // Couleur membre
+            bubbleDiv.style.color = 'white';
+            bubbleDiv.innerHTML = `
+                <strong>Membre :</strong><br>
+                ${contenu}<br>
+                <small class="text-muted">${dateEnvoi}</small>
+            `;
+        }
+
+        messageDiv.appendChild(bubbleDiv);
+        chatHistorique.appendChild(messageDiv);
+
+        // Faire défiler vers le bas pour voir le dernier message
+        chatHistorique.scrollTop = chatHistorique.scrollHeight;
+    }
+
+    if (formEnvoiMessage) {
+        formEnvoiMessage.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const membreId = document.getElementById('membre_id_selectionne').value;
+            const contenu = contenuMessageInput.value;
+
+            if (!membreId || !contenu.trim()) {
+                alert("Veuillez sélectionner un membre et écrire un message.");
+                return;
+            }
+
+            fetch(formEnvoiMessage.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    membre_id: membreId,
+                    contenu: contenu
+                })
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.text().then(text => { throw new Error(text) });
+                }
+                // Si l'envoi est réussi, on peut considérer le message comme envoyé par l'admin
+                // et l'ajouter à l'interface.
+                // Note : Pour avoir l'heure exacte du serveur, il faudrait que la réponse du serveur
+                // renvoie le timestamp. Pour l'instant, on utilise l'heure locale du client.
+                const now = new Date();
+                const formattedDate = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')} ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+                
+                // Appeler la fonction pour ajouter le message à la boîte de chat
+                appendMessage('admin', contenu, formattedDate);
+                
+                contenuMessageInput.value = ''; // Vider le champ de texte
+            })
+            .catch(error => {
+                console.error('Erreur lors de l\'envoi du message :', error);
+                alert('Erreur lors de l\'envoi du message : ' + error.message);
+            });
+        });
+    }
+
+});
+</script>
+
+{% endblock %}

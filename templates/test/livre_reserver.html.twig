@@ -1,0 +1,20 @@
+{% extends 'membres.html.twig' %}
+
+{% block title %}Hello TestController!{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" style="color:#3f1a01ff;" aria-current="page" href="{{ path('app_preter') }}">Livre Prêter</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" style="color:#3f1a01ff;" href="{{ path('app_reserver') }}">Livre reserver</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endblock %}

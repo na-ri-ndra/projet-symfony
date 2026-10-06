@@ -1,0 +1,199 @@
+{% extends 'admin.html.twig' %}
+
+{% block body %}
+<style>
+body {
+    background-color: white; /* Fond gris très clair pour un contraste doux */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Titres */
+h2, h3 {
+    color: #3f1a01; /* Utilisation de la couleur de votre thème */
+    border-bottom: 2px solid #8B4513; /* Ligne de séparation pour les titres */
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* Tableau */
+.table {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre douce pour un effet de profondeur */
+    border-radius: 8px; /* Coins arrondis pour le tableau */
+    overflow: hidden; /* Cache le débordement des coins arrondis */
+}
+
+/* En-tête du tableau */
+.table thead {
+    background-color: #3f1a01; /* Couleur de fond foncée pour l'en-tête */
+    color: white; /* Texte blanc */
+}
+
+.table th {
+    font-weight: bold;
+    border: none; /* Supprime les bordures des cellules de l'en-tête */
+}
+
+/* Corps du tableau */
+.table tbody tr {
+    transition: background-color 0.3s ease; /* Animation de survol */
+}
+
+.table tbody tr:hover {
+    background-color: #f1e9df; /* Couleur de survol légère */
+}
+
+.table td {
+    border-color: #e0d8c7; /* Couleur de bordure plus douce */
+}
+</style>
+<div class="d-flex gap-2 mb-3">
+    <!-- Bouton vers cette même page -->
+    <a href="{{ path('app_livre_indisponible') }}" class="btn" style="background-color: #3f1a01;color:white;">
+        <strong>Livres indisponibles</strong>
+    </a>
+
+    <!-- Bouton vers la page reservation.html.twig -->
+    <a href="{{ path('app_livre_indisponible_reservation') }}" class="btn" style="background-color: #3f1a01;color:white;">
+        <strong>Voir réservations</strong>
+    </a>
+</div>
+<div class="container mt-5">
+    <h3>Liste des prêts physiques</h3>
+    <div class="row g-2 mb-3">
+        <div class="col-md-3">
+            <input id="filterNom" type="text" class="form-control" placeholder="Nom du membre">
+        </div>
+        <div class="col-md-3">
+            <input id="filterTitre" type="text" class="form-control" placeholder="Titre du livre">
+        </div>
+        <div class="col-md-2">
+            <input id="filterPret" type="date" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <input id="filterRetour" type="date" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <button id="btnFiltrer" class="btn btn-dark w-100">Filtrer</button>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-striped" id="pretTable">
+          <thead>
+            <tr>
+              <th>Nom</th>
+              <th>Prénom</th>
+              <th>Titre du livre</th>
+              <th>Date de prêt</th>
+              <th>Date de retour</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+            <tbody>
+            {% for p in prets %}
+            <tr data-livre-id="{{ p.livre_id }}">
+                <td>{{ p.nom }}</td>
+                <td>{{ p.prenom }}</td>
+                <td>{{ p.titre }}</td>
+                <td>{{ p.date_pret|date('Y-m-d') }}</td>
+                <td>{{ p.date_retour_effectif ? p.date_retour_effectif|date('Y-m-d') : '' }}</td>
+                <td>
+                    <button class="btn btn-return" style="background-color: #3f1a01;color:white;" type="button">Retourner</button>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<!-- Modal de confirmation -->
+<div class="modal fade" id="confirmRetourModal" tabindex="-1" aria-labelledby="confirmRetourLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmRetourLabel">Confirmer le retour</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+      <div class="modal-body">
+        Êtes-vous sûr de vouloir retourner ce livre ?
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        <button type="button" id="btnConfirmerRetour" class="btn btn-primary">Confirmer</button>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Javascript qui fait le filtrage -->
+<script>
+document.getElementById("btnFiltrer").addEventListener("click", function() {
+    const nom = document.getElementById("filterNom").value.toLowerCase();
+    const titre = document.getElementById("filterTitre").value.toLowerCase();
+    const pret = document.getElementById("filterPret").value;
+    const retour = document.getElementById("filterRetour").value;
+
+    document.querySelectorAll("#pretTable tbody tr").forEach(row => {
+        const tdNom = row.cells[0].textContent.toLowerCase();
+        const tdTitre = row.cells[2].textContent.toLowerCase();
+        const tdPret = row.cells[3].textContent.trim();
+        const tdRetour = row.cells[4].textContent.trim();
+
+        let visible = true;
+        if (nom && !tdNom.includes(nom)) visible = false;
+        if (titre && !tdTitre.includes(titre)) visible = false;
+        if (pret && tdPret !== pret) visible = false;
+        if (retour && tdRetour !== retour) visible = false;
+
+        row.style.display = visible ? "" : "none";
+    });
+});
+</script>
+
+<script>
+let currentRow = null;
+let currentLivreId = null;
+
+// Afficher le modal quand on clique sur “Retourner”
+document.querySelectorAll(".btn-return").forEach(button => {
+    button.addEventListener("click", function() {
+        currentRow = this.closest("tr");
+        currentLivreId = currentRow.getAttribute("data-livre-id");
+        const modal = new bootstrap.Modal(document.getElementById('confirmRetourModal'));
+        modal.show();
+    });
+});
+
+// Action quand on clique sur “Confirmer” dans le modal
+document.getElementById("btnConfirmerRetour").addEventListener("click", function() {
+    if (!currentRow || !currentLivreId) return;
+
+    fetch("{{ path('app_livre_indisponible_retourner') }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "X-Requested-With": "XMLHttpRequest",
+            "X-CSRF-TOKEN": "{{ csrf_token('retour_livre') }}"
+        },
+        body: new URLSearchParams({
+            "livre_id": currentLivreId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            currentRow.remove(); // supprime la ligne du tableau
+            currentRow = null;
+            currentLivreId = null;
+            // Fermer le modal
+            const modalEl = document.getElementById('confirmRetourModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+        } else {
+            alert("Erreur : " + data.message);
+        }
+    })
+    .catch(error => console.error(error));
+});
+</script>
+
+{% endblock %}

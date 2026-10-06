@@ -1,0 +1,100 @@
+{% extends 'membres.html.twig' %}
+
+{% block title %}Hello TestController!{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-expand-lg bg-body-tertiary">
+  <div class="container-fluid">
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" style="color:#3f1a01ff;" aria-current="page" href="{{ path('app_preter') }}">Livre Prêter</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" style="color:#3f1a01ff;" href="{{ path('app_reserver') }}">Livre reserver</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+    <!-- Bouton à gauche -->
+<button class="btn" data-bs-toggle="modal" data-bs-target="#addModal" style="background-color: #3f1a01ff;color:white;">
+    Ajouter livre
+</button>
+
+<!-- Modal d'ajout-->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="ajouterLivreModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-md">
+    <div class="modal-content">
+      
+      <!-- En-tête du modal -->
+      <div class="modal-header">
+        <h5 class="modal-title" id="ajouterLivreModalLabel">Ajouter un livre</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+
+      <!-- Corps du modal -->
+      <div class="modal-body">
+        <form method="post" action="ton_action.php">
+          <div class="mb-3">
+            <label for="categorie" class="form-label">Catégorie</label>
+            <select class="form-select" id="categorie" name="categorie" required>
+              <option value="">-- Sélectionner une catégorie --</option>
+              <option value="roman">Roman</option>
+              <option value="bd">Bande dessinée</option>
+              <option value="autre">Autre</option>
+            </select>
+            
+            <!-- Affichage de la lettre -->
+            <div id="lettreCategorie" style="margin-top:5px; font-weight:bold;"></div>
+            
+            <!-- Input caché pour "Autre" -->
+            <input type="text" id="autreInput" name="autreCategorie" 
+                  placeholder="Précisez la catégorie" 
+                  class="form-control mt-2" style="display:none;">
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Pied du modal -->
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success">Enregistrer</button>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const selectCat = document.getElementById('categorie');
+  const display = document.getElementById('lettreCategorie');
+  const autreInput = document.getElementById('autreInput');
+
+  selectCat.addEventListener('change', function() {
+    if (this.value === 'roman') {
+      display.textContent = 'R';
+      autreInput.style.display = 'none';
+      autreInput.value = '';
+    } 
+    else if (this.value === 'bd') {
+      display.textContent = 'Bd';
+      autreInput.style.display = 'none';
+      autreInput.value = '';
+    } 
+    else if (this.value === 'autre') {
+      display.textContent = '';
+      autreInput.style.display = 'block';
+    } 
+    else {
+      display.textContent = '';
+      autreInput.style.display = 'none';
+      autreInput.value = '';
+    }
+  });
+});
+</script>
+
+{% endblock %}

@@ -1,0 +1,97 @@
+{% extends 'membres.html.twig' %}
+
+{% block body %}
+<div class="container mt-5" style="max-width: 600px;">
+
+    <h4 class="mb-4 text-center" style="color: #3f1a01ff;">Demande de réservation</h4>
+    <p><strong style="color: #3f1a01ff;">Livre :</strong> {{ livre.titre }} - {{ livre.auteur }}</p>
+    <form method="POST" style="border: 1px solid #3f1a01ff; padding: 20px; border-radius: 10px;">
+        <div class="form-group mb-3">
+            <label for="admin_id" style="color: #3f1a01ff;">Envoyer à l’administrateur :</label>
+            <select name="admin_id" id="admin_id" class="form-control" required>
+                {% for admin in admins %}
+                    <option value="{{ admin.id }}">{{ admin.nom_utilisateur }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="date_accueil" style="color: #3f1a01ff;">Date d’accueil :</label>
+            <input type="date" id="date_accueil" name="date_accueil" class="form-control" required>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="date_retour" style="color: #3f1a01ff;">Date de retour :</label>
+            <input type="date" id="date_retour" name="date_retour" class="form-control" required>
+        </div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <a href="{{ path('app_membre_livre') }}" class="btn btn-secondary">
+                ← Retour aux livres
+            </a>
+
+            <button type="submit" class="btn" style="background-color: #3f1a01ff; color: white;">
+                Envoyer la demande
+            </button>
+        </div>
+    </form>
+</div>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const dateAccueilInput = document.getElementById("date_accueil");
+        const dateRetourInput = document.getElementById("date_retour");
+
+        function formatDate(date) {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Définir les 3 jours valides pour date_accueil
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(today.getDate() + 1);
+
+        const afterTomorrow = new Date(today);
+        afterTomorrow.setDate(today.getDate() + 2);
+
+        const validDates = [
+            formatDate(today),
+            formatDate(tomorrow),
+            formatDate(afterTomorrow)
+        ];
+
+        // Définir min et max sur le champ
+        dateAccueilInput.min = validDates[0];
+        dateAccueilInput.max = validDates[2];
+
+        // Désactiver les autres dates (contrôle partiel, car HTML ne permet pas de bloquer toutes les dates sauf certaines)
+        dateAccueilInput.addEventListener("input", function () {
+            if (!validDates.includes(this.value)) {
+                alert("Veuillez choisir une date parmi aujourd’hui, demain ou après-demain.");
+                this.value = '';
+                dateRetourInput.value = '';
+                dateRetourInput.min = '';
+                dateRetourInput.max = '';
+                dateRetourInput.disabled = true;
+                return;
+            }
+
+            // Si une date valide est choisie → activer date_retour
+            const selectedDate = new Date(this.value);
+            const retourMin = new Date(selectedDate);
+            const retourMax = new Date(selectedDate);
+            retourMax.setDate(selectedDate.getDate() + 12);
+
+            dateRetourInput.disabled = false;
+            dateRetourInput.min = formatDate(retourMin);
+            dateRetourInput.max = formatDate(retourMax);
+            dateRetourInput.value = '';
+        });
+
+        // Par défaut, désactiver le champ date_retour
+        dateRetourInput.disabled = true;
+    });
+</script>
+{% endblock %}

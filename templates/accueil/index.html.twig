@@ -1,0 +1,470 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello AccueilController!{% endblock %}
+
+{% block body %}
+<body>
+<style>
+body {
+        background-color: #faf7f7ff;
+        color: #4b3832;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+
+    h1, h2, h5 {
+        font-family: Georgia, serif;
+        color: #3f1a01;
+    }
+
+    .text-brown {
+        color: #3f1a01 !important;
+    }
+
+    .border-brown {
+        border-color: #8B4513 !important;
+    }
+
+    .wrapper {
+        min-height: 100%;
+    }
+
+    header {
+        background-color: #3f1a01;
+        height: 1.9cm;
+        color: white;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 4%;
+    }
+
+    header a {
+        text-decoration: none;
+    }
+
+    header .btn:hover {
+        opacity: 0.9;
+    }
+
+    main {
+        min-height: 100vh;
+        padding-top: 3.2cm;
+    }
+
+    footer.footer {
+        background-color: #3f1a01;
+        color: white;
+        padding: 50px 0;
+        height: auto;
+        font-weight: normal;
+    }
+    
+    .card {
+        border: 1px solid #e0d8c7;
+        border-radius: 12px;
+        background-color: #ffffff;
+        box-shadow: 0 4px 8px rgba(192, 185, 185, 0.05);
+        transition: transform 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(73, 40, 18, 0.05);
+    }
+    
+    .gradient-box {
+        background: linear-gradient(to right, #3f1a01, #8B4513);
+        color: white;
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        text-align: center;
+    }
+
+    .bi-check2-circle {
+        font-size: 1.5rem;
+        color: #ffd700;
+    }
+
+    .card-icon-circle {
+        width: 60px;
+        height: 60px;
+        background-color: #f7e7c9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1rem;
+        font-size: 1.75rem;
+        color: #3f1a01;
+    }
+
+    .call-to-action {
+        background: linear-gradient(to right, #3f1a01, #8B4513);
+        color: white;
+        border-radius: 20px;
+        padding: 3rem 2rem;
+        text-align: center;
+        margin-bottom: 20px;
+    }
+
+    .call-to-action .btn-light {
+        color: #3f1a01;
+        font-weight: bold;
+    }
+    
+    .flash-overlay {
+        position: fixed;
+        top: 5rem;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 1050;
+        padding: 1rem 2rem;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        font-weight: bold;
+        text-align: center;
+        color: white;
+    }
+    .flash-success {
+        background-color: #4caf50;
+    }
+    .flash-danger {
+        background-color: #f44336;
+    }
+    .form-select:focus{
+        border-color: #3f1a01ff;
+        box-shadow: 0 0 0 0.25rem rgba(139, 69, 19, 0.25);
+    }
+    .form-select{
+        border: 1px solid #3f1a01ff;
+    }
+    .form-control:focus{
+        box-shadow: 0 0 0 0.25rem rgba(139, 69, 19, 0.25);
+    }
+</style>
+<!-- MODAL CONNEXION -->
+<div class="modal fade" id="modalConnexion" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content" style="border: 2px solid #3f1a01ff">
+      <form method="POST" action="{{ path('app_accueil') }}">
+        <div class="modal-header" style="background-color:#3f1a01ff;">
+          <h5 class="modal-title" style="color:white;"><strong>Connexion</strong></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          {% if login_error is defined %}
+            <div class="text-danger text-center fw-bold">{{ login_error }}</div>
+          {% endif %}
+          <div class="mb-3">
+            <label class="form-label text-brown">Statut</label>
+            <select name="statut" class="form-select text-brown" required>
+              <option value="administrateur">Administrateur</option>
+              <option value="membre">Membre</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-brown">Nom d'utilisateur</label>
+            <input type="text" name="nom_utilisateur" class="form-control text-brown" required autocomplete="off">
+          </div>
+          <div class="mb-3">
+            <label class="form-label text-brown">Mot de passe</label>
+            <input type="password" name="mot_de_passe" class="form-control text-brown" required autocomplete="new-password">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background-color: #3f1a01ec;color:white;" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn" style="background-color: #3f1a01ff;color:white;">Se connecter</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<!-- / MODALE DE CONNEXION -->  
+<!-- Modal d'inscription -->
+<div class="modal fade" id="inscriptionModal" tabindex="-1" aria-labelledby="inscriptionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form method="POST" action="{{ path('app_inscription_membre') }}">
+        <div class="modal-header" style="background-color:#3f1a01ff;">
+          <h5 class="modal-title" style="color:white;"><strong>Formulaire d'inscription</strong></h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row mb-3">
+              <div class="col">
+                  <label>Nom</label>
+                  <input type="text" class="form-control" name="nom" required autocomplete="off">
+              </div>
+              <div class="col">
+                  <label>Prénom</label>
+                  <input type="text" class="form-control" name="prenom" required autocomplete="off">
+              </div>
+          </div>
+
+          <div class="mb-3">
+              <label>Fonction</label>
+              <select class="form-control border-#3f1a01ff" name="type_personne" required>
+                  <option value="eleve">Élève</option>
+                  <option value="responsable">Responsable</option>
+                  <option value="enseignant">Enseignant</option>
+              </select>
+          </div>
+
+          <div class="mb-3">
+              <label>Matricule</label>
+              <input type="text" class="form-control" name="matricule" required autocomplete="off">
+          </div>
+
+          <div class="mb-3">
+              <label>Mot de passe</label>
+              <input type="password" class="form-control" name="mdp" required autocomplete="off">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn" style="background-color: #3f1a01dc;color:white;" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn" style="background-color: #3f1a01ff;color:white;">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+ <!-- / Modale inscription  -->
+<div class="wrapper d-flex flex-column min-vh-100"> 
+    <header class="d-flex justify-content-between align-items-center px-4">
+        <!-- Logo ou nom à gauche -->
+        <a href="{{ path('app_accueil') }}" class="btn text-white border-0 fs-4 fw-bold d-flex align-items-center gap-2">
+            <img src="{{ asset('images/books.png') }}" alt="Logo Livre" width="30" height="30">
+            Bibliôteky
+        </a>
+
+        <!-- Boutons à droite -->
+        <div>
+            <button class="btn btn-outline-light me-2" data-bs-toggle="modal" data-bs-target="#modalConnexion">
+                <i class="bi bi-box-arrow-in-right"></i> Se connecter
+            </button>
+            
+            <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#inscriptionModal">
+            <i class=" bi bi-people"></i> S'inscrire</button>
+
+        </div>
+    </header>
+
+<main class="flex-grow-1 container" style="padding-top: 3.2cm;">
+{% for message in app.flashes('success') %}
+    <div class="flash-overlay flash-success">{{ message }}</div>
+{% endfor %}
+{% for message in app.flashes('danger') %}
+    <div class="flash-overlay flash-danger">{{ message }}</div>
+{% endfor %}
+<!-- Section Définition -->
+<section id="definition-section" class="py-5">
+    <div class="text-center mb-4">
+        <i class="bi bi-book fs-1" style="
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #3f1a01ff;
+  color: white;
+  width: 2cm;
+  height: 2cm;
+  border-radius: 50%;
+  font-size: 0.6cm;
+"></i><br><br>
+        <h1 style="color: #3f1a01ff;">Bibliôteky</h1>
+        <p>Application web moderne de gestion de bibliothèque physique scolaire</p>
+    </div>
+    <div class="card p-4 mx-auto" style="max-width: 800px; border: 1px solid #ddd; border-radius: 8px;">
+        <h2 class="h5 mb-3 text-center" style="color: #3f1a01ff;"><i class="bi bi-lightbulb"></i> Définition</h2>
+        <p class="text-center">Bibliôteky est une solution numérique conçue spécifiquement pour les établissements scolaires. Elle permet de gérer efficacement l'ensemble des ressources documentaires physiques, d'offrir une interface intuitive pour les bibliothécaires, enseignants et élèves.</p>
+    </div>
+</section>
+
+<div class="text-center py-5" style="background: linear-gradient(to right, #3f1a01ff, #8B4513);border-radius:20px;">
+    <h2 class="text-white mb-3">"Transformez votre bibliothèque traditionnelle en un centre de ressources moderne et connecté"</h2>
+    <p class="text-white-50">Avec Bibliôteky, révolutionnez la gestion de votre fonds documentaire et offrez une expérience utilisateur exceptionnelle à toute votre communauté éducative.</p>
+</div>
+<!-- Section Objectifs -->
+<section id="objectifs-section" class="py-5">
+    <div class="text-center mb-5">
+    <i class="bi bi-bullseye fs-1" style="
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #3f1a01ff;
+  color: white;
+  width: 2cm;
+  height: 2cm;
+  border-radius: 50%;
+  font-size: 0.6cm;
+"></i><br><br>
+        <h2 style="color: #3f1a01ff;">Nos Objectifs</h2>
+        <p>Des objectifs clairs pour une bibliothèque scolaire plus efficace et moderne</p>
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 g-4">
+        <div class="col">
+            <div class="card h-100 p-4 border-#faefeac7">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-check2-circle"></i> 
+                    <h5 class="card-title text-brown">Simplifier la gestion</h5>
+                </div>
+                <p class="card-text">Automatiser les tâches répétitives et réduire la charge administrative</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 p-4 border-#faefeac7">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-check2-circle"></i> 
+                    <h5 class="card-title text-brown">Améliorer l'accessibilité</h5>
+                </div>
+                <p class="card-text">Faciliter l'accès aux ressources pour tous les membres de l'établissement</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 p-4 border-#faefeac7">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-check2-circle"></i> 
+                    <h5 class="card-title text-brown">Optimiser les ressources</h5>
+                </div>
+                <p class="card-text">Maximiser l'utilisation du fonds documentaire et réduire les pertes</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 p-4 border-#faefeac7">
+                <div class="d-flex align-items-center mb-3">
+                    <i class="bi bi-check2-circle"></i>
+                    <h5 class="card-title text-brown">Moderniser l'enseignement</h5>
+                </div>
+                <p class="card-text">Intégrer les outils numériques dans l'apprentissage et la recherche</p>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Section Fonctions -->
+<section id="fonctionnalites-section" class="py-5">
+    <div class="text-center mb-5">
+    <i class="bi bi-tools fs-1" style="
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #3f1a01ff;
+  color: white;
+  width: 2cm;
+  height: 2cm;
+  border-radius: 50%;
+  font-size: 0.6cm;
+"></i><br><br>
+        <h2 style="color: #3f1a01ff;">Fonctionnalités Principales</h2>
+        <p>Découvrez l'ensemble des outils intégrés pour une gestion optimale de votre bibliothèque</p>
+    </div>
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        <div class="col">
+            <div class="card h-100 p-4 text-center border-#faefeac7">
+                <div class="card-img-top mx-auto mb-3" style=" color:#f7e7c9;width: 60px; height: 60px; background-color: #3f1a01ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-book fs-3"></i>
+                </div>
+                <h5 class="card-title text-brown">Gestion du Catalogue</h5>
+                <p class="card-text">Ajout, modification et suppression de livres avec informations détaillées</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 p-4 text-center border-#faefeac7">
+                <div class="card-img-top mx-auto mb-3" style=" color:#f7e7c9;width: 60px; height: 60px; background-color: #3f1a01ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-people fs-3"></i>
+                </div>
+                <h5 class="card-title text-brown">Gestion des Membres</h5>
+                <p class="card-text">Inscription des élèves, enseignants et responsables avec leurs profils</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 p-4 text-center border-#faefeac7">
+                <div class="card-img-top mx-auto mb-3" style=" color:#f7e7c9;width: 60px; height: 60px; background-color: #3f1a01ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-watch fs-3"></i>
+                </div>
+                <h5 class="card-title text-brown">Suivi des Emprunts</h5>
+                <p class="card-text">Gestion complète des prêts, retours et historique des emprunts</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 p-4 text-center border-#faefeac7">
+                <div class="card-img-top mx-auto mb-3" style=" color:#f7e7c9;width: 60px; height: 60px; background-color: #3f1a01ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-graph-down fs-3"></i>
+                </div>
+                <h5 class="card-title text-brown">Rapports et Statistiques</h5>
+                <p class="card-text">Analyse des données d'utilisation et génération de rapports</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 p-4 text-center border-#faefeac7">
+                <div class="card-img-top mx-auto mb-3" style=" color:#f7e7c9;width: 60px; height: 60px; background-color: #3f1a01ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-search fs-3"></i>
+                </div>
+                <h5 class="card-title text-brown">Recherche Avancée</h5>
+                <p class="card-text">Recherche multicritères pour localiser rapidement les ouvrages</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="card h-100 p-4 text-center border-#faefeac7">
+                <div class="card-img-top mx-auto mb-3" style=" color:#f7e7c9;width: 60px; height: 60px; background-color: #3f1a01ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                    <i class="bi bi-shield fs-3"></i>
+                </div>
+                <h5 class="card-title text-brown">Sécurité et Accès</h5>
+                <p class="card-text">Contrôle d'accès par rôles et sécurisation des données</p>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- Section Fonctions -->
+<div class="text-center py-5" style="background: linear-gradient(to right, #3f1a01ff, #8B4513) ;margin-bottom:20px;color: white;border-radius:20px;">
+    <h2 class="mb-3" style="color:white;">Prêt à moderniser votre bibliothèque ?</h2>
+    <p class="text-white-50 mb-4">Rejoignez les établissements qui ont choisi Bibliôteky pour transformer leur gestion documentaire</p>
+    <a href="#" class="btn btn-light rounded-pill px-4 py-2 d-inline-flex align-items-center">
+        Découvrir la démonstration
+        <i class="bi bi-arrow-right ms-2"></i>
+    </a>
+</div>    
+</main>
+<footer class="footer text-white mt-auto py-5">
+    <div class="container">
+        <div class="row">
+            <!-- Nom & Description -->
+            <div class="col-md-4">
+            <h5>
+            <img src="{{ asset('images/books.png') }}" alt="Logo Livre" width="30" height="30">
+                Bibliôteky<br>Gestion Scolaire</h5>
+                <p>Application web de gestion de bibliothèque physique scolaire</p>
+            </div>
+
+            <!-- Contact -->
+            <div class="col-md-4">
+                <h5>Contact</h5>
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-envelope me-2"></i> fahasoavana13@gmail.mg</li>
+                    <li><i class="bi bi-telephone me-2"></i> +261 34 87 745 30</li>
+                    <li><i class="bi bi-geo-alt me-2"></i> Antsirabe, Madagascar</li>
+                </ul>
+            </div>
+        </div>
+
+        <hr class="border-white mt-4">
+
+        <div class="text-center">
+            <small>&copy; {{ "now"|date("Y") }} Bibliôteky. Développé par RAHELIARIVONY Andriatsitohaina Harinarindra.</small>
+        </div>
+    </div>
+</footer>
+</div>
+
+
+<script src="js/bootstrap.bundle.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+
+</body>
+{% endblock %}

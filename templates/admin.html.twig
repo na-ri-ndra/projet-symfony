@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Welcome!{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('bootstrap-icons-1.11.3/font/bootstrap-icons.css') }}">
+        {% block stylesheets %}
+<style>
+body {
+        margin: 0;
+        margin-top:20px;
+        background-color:rgb(241, 236, 236);
+        font-family: Arial, sans-serif;
+        color: #3f1a01ff;
+    }
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 220px;
+    height: 100vh;
+    background: linear-gradient(180deg, #3f1a01ff,rgba(22, 10, 1, 1)); /* Bleu profond */
+    color: white;
+    padding-top: 30px;
+    }
+
+.sidebar h2 {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 22px;
+    color: #ffffff;
+}
+
+.sidebar a {
+    display: block;
+    color: white;
+    padding: 12px 20px;
+    text-decoration: none;
+    transition: background 0.3s;
+    font-weight: bold; /* ← Ajouté pour mettre en gras */
+}
+
+.sidebar a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    border-left: 4px solid  #3f1a01ff;
+}
+.separator {
+    height: 1.5cm;
+    width: 100%;
+    background-color: white;
+}
+.gradient-text {
+    background: linear-gradient(180deg,  #3f1a01ff,rgb(26, 11, 1));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    color: transparent;
+    font-weight: bold;
+    font-family: Arial, sans-serif;
+}
+
+.main-content {
+    margin-left: 220px;
+    padding: 20px;
+}
+        /*Style de bare laterale*/
+.top-bar .form-control {
+    width: 250px;
+    border-radius: 20px;
+}
+
+.top-bar i {
+    cursor: pointer;
+}
+
+
+.top-bar a {
+    text-decoration: none;
+    position: relative;
+}
+/*style du profil*/
+.profile-badge {
+    color:   #3f1a01ff;
+    padding-right:0;
+    height: 35px;
+    display: flex;
+    justify-content: space-between; /* ← clé pour séparer texte et image */
+    border-radius: 50px;
+    font-family: Arial, sans-serif;
+    font-weight: bold;
+}
+    </style>
+        {% endblock %}
+
+        {% block javascripts %}
+            {% block importmap %}{{ importmap('app') }}{% endblock %}
+        {% endblock %}
+    </head>
+    <body>
+<div class="top-bar d-flex justify-content-between align-items-center px-4 py-2" style="margin-left:220px; background-color:transparent; height: 60px;">
+
+    <!-- Bloc gauche : les icônes -->
+    
+
+    <div class="d-flex align-items-center gap-3" style='margin-top:0px;'>
+        <a href="{{ path('app_admin_message') }}" id="notif-icon" class="position-relative">
+            <i class="bi bi-envelope-fill fs-4" style="color: #3f1a01ff;" id="icon-message"></i>
+            <span id="notif-badge"
+                class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
+                style="display: none;">
+                1
+            </span>
+        </a>
+
+        
+    </div>
+
+    <!-- Bloc droite : badge Admin -->
+    <div class="fw-bold" style="color: #3f1a01ff;">
+        {% if admin is defined %}
+            {{ admin.nom_utilisateur }}
+        {% else %}
+            Nom de l'nom utilisateur
+        {% endif %}
+    </div>
+</div>
+
+<div class="sidebar">
+    <div class="tete">
+        <h2><img src="{{ asset('images/books.png') }}" alt="Livre" width="25" height="25"> Bibliôteky</h2>
+    </div>
+
+    <!-- ESPACE -->
+    <div class="separator d-flex align-items-center justify-content-center">
+        <span class="gradient-text fw-bold">{{ page_title|default('Librairie') }}</span>
+    </div>
+
+    <div class="pied">
+        <a href="{{ path('app_dashboard') }}"><i class="bi bi-speedometer2"></i> Tableau de bord</a>
+        <a href="{{ path('app_livre_indisponible') }}"><i class="bi bi-journal-x"></i> Liste des livre non disponible</a>
+        <a href="{{ path('app_personne_autorise') }}"><i class="bi bi-people"></i> Listes scolaire</a>
+        <a href="{{ path('app_etagere')}}"><i class="bi bi-grid-3x3"></i> Etagére du livre</a>
+        <a href="{{ path('app_livre')}}"><i class="bi bi-book"></i> Liste des livres</a>
+        <a href="{{ path('app_pret_physique') }}"><i class="bi bi-wallet"></i> Gestionde prêt physique</a>
+        <a href="{{ path('app_membre_biblio')}}"><i class="bi bi-person-badge"></i> Liste des membres bibliothèque</a>
+        <a href="{{ path('app_logout') }}"><i class=" bi bi-power"></i> Déconnexion</strong></a>
+    </div>
+</div>
+
+<div class="main-content">
+    {% block body %}{% endblock %}
+</div>
+
+<script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('js/bootstrap.min.js') }}"></script>
+<span id="message-non-lu" data-non-lu="1" style="display: none;"></span>
+    </body>
+</html>

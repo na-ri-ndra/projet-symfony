@@ -1,0 +1,212 @@
+{% extends 'admin.html.twig' %}
+
+{% block title %}Hello PretPhysiqueController!{% endblock %}
+
+{% block body %}
+
+<style>
+body {
+    margin-top:0px;
+    margin-left:1cm;
+    background-color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #4b3832;
+}
+
+table {
+width: 100%;
+border-collapse: collapse;
+margin-top: 20px;
+font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+font-size: 14px;
+}
+
+thead {
+background-color:#3f1a01ff;
+color: white;
+}
+
+th, td {
+padding: 10px 12px;
+border: 1px solid #ccc;
+text-align: left;
+}
+
+tbody tr:nth-child(even) {
+background-color: #f2f2f2;
+}
+
+tbody tr:hover {
+background-color: #e0f7fa;
+}
+
+h2 {
+color:#3f1a01ff;
+margin-bottom: 10px;
+}
+/* Tableau */
+.table {
+box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+border-radius: 8px;
+overflow: hidden;
+}
+
+/* En-tête du tableau */
+.table thead {
+background-color: #3f1a01; /* Couleur du thème principale pour l'en-tête */
+color: white;
+}
+
+.table th {
+font-weight: bold;
+border: none;
+text-align: center;
+vertical-align: middle;
+}
+
+/* Corps du tableau */
+.table tbody tr {
+transition: background-color 0.3s ease;
+}
+
+.table tbody tr:hover {
+background-color: #f1e9df; /* Couleur de survol légère */
+}
+
+.table td {
+border-color: #e0d8c7; /* Couleur de bordure plus douce */
+vertical-align: middle;
+}
+
+/* Bouton d'action dans le tableau */
+.btn-pret {
+background-color: #3f1a01ff; /* Couleur de bouton cohérente */
+color: white;
+border: none;
+transition: background-color 0.3s ease;
+}
+
+.btn-pret:hover {
+background-color: #a0522d;
+}
+
+/* Modal */
+.modal-content {
+border-radius: 12px;
+box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+background-color: #f1e9df; /* En-tête de modale de couleur douce */
+border-bottom: 2px solid#3f1a01ff;
+color: #3f1a01;
+border-top-left-radius: 12px;
+border-top-right-radius: 12px;
+}
+
+.modal-title {
+color: #3f1a01;
+font-weight: bold;
+}
+
+.modal-body {
+padding: 2rem;
+color: #4b3832; /* Couleur de texte du corps de la modale */
+}
+
+.modal-body label {
+font-weight: bold;
+color: #3f1a01;
+}
+
+.modal-footer .btn-primary {
+background-color: #3f1a01; /* Bouton principal de la modale */
+border-color: #3f1a01;
+transition: background-color 0.3s ease;
+}
+
+.modal-footer .btn-primary:hover {
+background-color: #5a2e0e;
+border-color: #5a2e0e;
+}
+</style>
+
+<h2>Liste des membres</h2>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Type de personne</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for membre in membres %}
+                <tr>
+                    <td>{{ membre.nom }}</td>
+                    <td>{{ membre.prenom }}</td>
+                    <td>{{ membre.type_personne }}</td>
+                    <td class="text-center">
+                        <button 
+                            class="btn btn-sm btn-primary"
+                            data-bs-toggle="modal" 
+                            data-bs-target="#selectBookCountModal" 
+                            data-membre-id="{{ membre.id }}" 
+                            data-membre-nom="{{ membre.nom }}" 
+                            data-membre-prenom="{{ membre.prenom }}">
+                            Faire prêt
+                        </button>
+                    </td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4" class="text-center">Aucun membre trouvé.</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal sélection nombre de livres -->
+<div class="modal fade" id="selectBookCountModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="POST" action="{{ path('pret_physique_selection_livre') }}">
+        <div class="modal-header">
+          <h5 class="modal-title">Sélection du nombre de livres</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="membre_id" id="modal-membre-id">
+          <p>Membre sélectionné : <strong id="modal-membre-info">Aucun</strong></p>
+          <div class="mb-3">
+              <label class="form-label">Nombre de livres</label>
+              <select name="nombre_livres" class="form-select" required>
+                <option value="1">1 livre</option>
+                <option value="2">2 livres</option>
+                <option value="3">3 livres</option>
+              </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">OK</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('selectBookCountModal').addEventListener('show.bs.modal', function (event) {
+    const button = event.relatedTarget;
+    document.getElementById('modal-membre-id').value = button.getAttribute('data-membre-id');
+    document.getElementById('modal-membre-info').textContent = button.getAttribute('data-membre-prenom') + " " + button.getAttribute('data-membre-nom');
+});
+</script>
+
+
+{% endblock %}

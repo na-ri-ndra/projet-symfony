@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>{% block title %}Welcome!{% endblock %}</title>
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 128 128%22><text y=%221.2em%22 font-size=%2296%22>⚫️</text><text y=%221.3em%22 x=%220.2em%22 font-size=%2276%22 fill=%22%23fff%22>sf</text></svg>">
+        <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
+        <link rel="stylesheet" href="{{ asset('bootstrap-icons-1.11.3/font/bootstrap-icons.css') }}">
+        {% block stylesheets %}
+        {% endblock %}
+    </head>
+<style>
+/* Styles généraux du corps */
+body {
+    margin: 0;
+    overflow-x: hidden;
+    background-color: white; /* Fond gris très clair */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #4b3832; /* Couleur de texte principale */
+}
+
+/* ---------------------- Styles du menu vertical ---------------------- */
+
+.menu-vertical {
+    width: 6cm;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    z-index: 1000;
+    transition: transform 0.3s ease-in-out; /* Animation au survol */
+}
+
+.menu-vertical:hover {
+    transform: translateX(5px); /* Glisse légèrement le menu vers la droite */
+}
+
+.menu-header {
+    height: 3cm;
+    background-color: #3f1a01ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.menu-header img {
+    margin-right: 10px;
+}
+
+.menu-separator {
+    height: 0.2cm;
+    background: white;
+}
+
+.menu-content {
+    flex-grow: 1;
+    background: linear-gradient(#3f1a01ff, rgb(48, 24, 7));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+}
+
+.nav-link {
+    transition: all 0.3s ease; /* Animation de transition pour tous les états */
+    width: 100%;
+    text-align: center;
+    padding: 10px 0;
+    color: white;
+    text-decoration: none;
+    position: relative; /* Pour l'animation de la barre */
+}
+
+.nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+}
+
+/* Animation d'un trait au survol */
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background-color: white;
+    transition: width 0.3s ease, left 0.3s ease;
+}
+
+.nav-link:hover::after {
+    width: 80%;
+    left: 10%;
+}
+
+.active-menu {
+    background-color: white !important;
+    color: #3f1a01ff !important;
+    font-weight: bold;
+    padding-left: 10px;
+    position: relative; /* Pour le soulignement actif */
+}
+
+.active-menu::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    width: 80%;
+    height: 2px;
+    background-color: #3f1a01ff; /* Soulignement du menu actif */
+}
+
+/* ---------------------- Styles de la barre latérale droite (en-tête) ---------------------- */
+
+.header-bar {
+    height: 3cm;
+    background-color: white;
+    position: fixed;
+    top: 0;
+    left: 6cm;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+}
+
+.header-icon {
+    transition: transform 0.3s ease; /* Animation au survol */
+}
+
+.header-icon:hover {
+    transform: scale(1.1);
+    color: #a0522d !important;
+}
+
+.header-icon i {
+    color: #3f1a01ff;
+}
+
+.badge {
+    font-size: 0.8rem;
+    margin-left: 5px;
+    vertical-align: super;
+}
+
+/* ---------------------- Styles du contenu principal ---------------------- */
+
+.main-content {
+    flex-grow: 1;
+    margin-left: 6cm; /* Marge pour le menu */
+    margin-top: 3cm; /* Marge pour la barre d'en-tête */
+    padding: 1.5rem;
+}
+
+.message-scroll-zone {
+    max-height: calc(100vh - 6cm);
+    overflow-y: auto;
+}
+</style>
+    <body>
+        <div class="d-flex" style="height: 100vh;">
+
+            <div class="menu-vertical">
+
+                <div class="menu-header">
+                    <h2>
+                        <img src="{{ asset('images/books.png') }}" alt="Livre" width="25" height="25"> Bibliôteky
+                    </h2>
+                </div>
+
+                <div class="menu-separator"></div>
+
+                <div class="menu-content">
+                    <a href="{{ path('membre_livres') }}"
+                       class="nav-link mb-3 {% if app.request.get('_route') == 'app_membre_livre' %}active-menu{% endif %}">
+                       Liste des livres
+                    </a>
+                    <a href="{{ path('app_logout') }}"
+                       class="nav-link mb-3 {% if app.request.get('_route') == 'app_logout' %}active-menu{% endif %}">
+                       Se deconnecter
+                    </a>
+                </div>
+            </div>
+
+            <div class="main-content">
+
+                <div class="header-bar">
+                    <div class="d-flex align-items-center">
+                        <a href="{{ path('app_message_membre') }}" class="header-icon">
+                            <i class="bi bi-envelope-fill fs-4"></i>
+                            {% if nonLus is defined and nonLus > 0 %}
+                                <span class="badge bg-danger">{{ nonLus }}</span>
+                            {% endif %}
+                        </a>
+                    </div>
+                    <div class="fw-bold" style="color: #3f1a01ff;">
+                        {% if membre is defined %}
+                            {{ membre.nom }} {{ membre.prenom }}
+                        {% else %}
+                            Nom du membre
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="p-4">
+                    {% block body %}{% endblock %}
+                </div>
+            </div>
+        </div>
+
+<script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ asset('js/bootstrap.min.js') }}"></script>
+    </body>
+</html>

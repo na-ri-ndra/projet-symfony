@@ -1,0 +1,156 @@
+{% extends 'admin.html.twig' %}
+
+{% block body %}
+<style>
+body {
+    background-color: white; /* Fond gris très clair pour un contraste doux */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin-top: 0px;
+    margin-right: 0px;
+}
+
+/* Titres */
+h2, h3 {
+    color: #3f1a01; /* Utilisation de la couleur de votre thème */
+    border-bottom: 2px solid #8B4513; /* Ligne de séparation pour les titres */
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* Tableau */
+.table {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Ombre douce pour un effet de profondeur */
+    border-radius: 8px; /* Coins arrondis pour le tableau */
+    overflow: hidden; /* Cache le débordement des coins arrondis */
+}
+
+/* En-tête du tableau */
+.table thead {
+    background-color: #3f1a01; /* Couleur de fond foncée pour l'en-tête */
+    color: white; /* Texte blanc */
+}
+
+.table th {
+    font-weight: bold;
+    border: none; /* Supprime les bordures des cellules de l'en-tête */
+}
+
+/* Corps du tableau */
+.table tbody tr {
+    transition: background-color 0.3s ease; /* Animation de survol */
+}
+
+.table tbody tr:hover {
+    background-color: #f1e9df; /* Couleur de survol légère */
+}
+
+.table td {
+    border-color: #e0d8c7; /* Couleur de bordure plus douce */
+}
+</style>
+<div class="d-flex gap-2 mb-3">
+    <!-- Bouton vers cette même page -->
+    <a href="{{ path('app_livre_indisponible') }}" class="btn" style="background-color: #3f1a01;color:white;">
+        <strong>Livres indisponibles</strong>
+    </a>
+
+    <!-- Bouton vers la page reservation.html.twig -->
+    <a href="{{ path('app_livre_indisponible_reservation') }}" class="btn" style="background-color: #3f1a01;color:white;">
+        <strong>Voir réservations</strong>
+    </a>
+</div>
+<div class="container mt-5">
+    <h3>Livre(s) réservé(s)</h3>
+    <div class="row g-2 mb-3">
+        <div class="col-md-3">
+            <input id="filterNom" type="text" class="form-control" placeholder="Nom du membre">
+        </div>
+        <div class="col-md-3">
+            <input id="filterTitre" type="text" class="form-control" placeholder="Titre du livre">
+        </div>
+        <div class="col-md-2">
+            <input id="filterReservation" type="date" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <input id="filterRatrait" type="date" class="form-control">
+        </div>
+        <div class="col-md-2">
+            <button id="btnFiltrer" class="btn btn-dark w-100">Filtrer</button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped" id="reservationTable">
+          <thead>
+            <tr>
+              <tr>
+                <th class="p-3">Nom</th>
+                <th class="p-3">Prénom</th>
+                <th class="p-3">Titre du livre</th>
+                <th class="p-3">Date de réservation</th>
+                <th class="p-3">Date de retrait</th>
+                <th class="p-3">Action</th>
+              </tr>
+            </tr>
+          </thead>
+          <tbody>
+                {% for res in reservations %}
+                    <tr id="row-{{ res.livre_id }}" data-livre-id="{{ res.livre_id }}">
+                        <td class="p-3">{{ res.nom }}</td>
+                        <td class="p-3">{{ res.prenom }}</td>
+                        <td class="p-3">{{ res.titre }}</td>
+                        <td class="p-3">{{ res.date_action|date('Y-m-d') }}</td>
+                        <td class="p-3">
+                            {% if res.date_retrait %}
+                                {{ res.date_retrait }}
+                            {% else %}
+                                <em>Non communiquée</em>
+                            {% endif %}
+                        </td>
+                        <td class="p-3">
+                            <button class="btn btn-success btn-sm btn-retourner" 
+                                    data-id="{{ res.livre_id }}"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#modalRetour" 
+                                    style="background-color:#3f1a01ff;">
+                                Retourner
+                            </button>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<script>
+document.getElementById("btnFiltrer").addEventListener("click", function() {
+    const nom = document.getElementById("filterNom").value.toLowerCase();
+    const titre = document.getElementById("filterTitre").value.toLowerCase();
+    const reservation = document.getElementById("filterReservation").value;
+    const retrait = document.getElementById("filterRatrait").value;
+
+    document.querySelectorAll("#reservationTable tbody tr").forEach(row => {
+        const tdNom = row.cells[0].textContent.toLowerCase();
+        const tdTitre = row.cells[2].textContent.toLowerCase();
+        const tdReservation = row.cells[3].textContent.trim();
+        const tdRetrait = row.cells[4].textContent.trim();
+
+        let visible = true;
+
+        if (nom && !tdNom.includes(nom)) visible = false;
+        if (titre && !tdTitre.includes(titre)) visible = false;
+        if (reservation && tdReservation !== reservation) visible = false;
+
+        // Comparer la date de retrait uniquement si l'utilisateur a mis une valeur
+        if (retrait) {
+            // Si le champ contient "Non communiquée", on ignore
+            if (tdRetrait.toLowerCase().includes("non communiquée") || tdRetrait !== retrait) {
+                visible = false;
+            }
+        }
+
+        row.style.display = visible ? "" : "none";
+    });
+});
+</script>
+
+{% endblock %}

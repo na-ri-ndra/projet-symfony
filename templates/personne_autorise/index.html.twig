@@ -1,0 +1,293 @@
+{% extends 'admin.html.twig' %}
+
+{% block title %}Hello PersonneAutoriseController!{% endblock %}
+
+{% block body %}
+
+<style>
+body {
+    margin-left: 1cm;
+    background-color: white;
+}
+/* Styles pour le tableau */
+.table {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 2rem; /* Espace en bas du tableau */
+}
+
+/* En-tête du tableau */
+.table thead {
+    background-color: #3f1a01; /* Votre couleur de thème principale */
+    color: white;
+}
+
+/* Cellules de l'en-tête */
+.table th {
+    font-weight: bold;
+    border: none; /* Supprime les bordures des cellules de l'en-tête pour un look épuré */
+    text-align: center; /* Centre le texte dans l'en-tête */
+    vertical-align: middle;
+}
+
+/* Corps du tableau */
+.table tbody tr {
+    transition: background-color 0.3s ease; /* Animation de survol */
+}
+
+.table tbody tr:hover {
+    background-color: #f1e9df; /* Couleur de survol légère */
+}
+
+.table td {
+    border-color: #e0d8c7; /* Couleur de bordure plus douce */
+    vertical-align: middle;
+}
+
+/* Boutons d'action */
+.btn-modifier {
+    background-color: #3f1a01ff;
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-modifier:hover {
+    background-color: #3f1a01ff; /* Assombrir au survol */
+}
+
+.btn-supprimer {
+    background-color: #3f1a01ff; /* Une teinte plus claire de la couleur principale */
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-supprimer:hover {
+    background-color: #3f1a01ff; /* Assombrir au survol */
+}
+/* Style des modales */
+.modal-content {
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background-color: #f1e9df; /* Couleur de fond douce pour l'en-tête */
+    border-bottom: 2px solid #8B4513; /* Ligne de séparation de couleur du thème */
+    color: #3f1a01;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.modal-title {
+    color: #3f1a01;
+    font-weight: bold;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+/* Style des champs de formulaire */
+.form-label {
+    color: #3f1a01;
+    font-weight: bold;
+}
+
+.form-control,
+.form-select {
+    border-color: #d2b48c; /* Bordure des champs dans les tons du thème */
+    color: #3f1a01;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #8B4513; /* Bordure du champ actif */
+    box-shadow: 0 0 0 0.25rem rgba(139, 69, 19, 0.25); /* Ombre au focus */
+}
+
+/* Styles des boutons */
+.modal-footer .btn-success {
+    background-color: #8B4513;
+    border-color: #8B4513;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.modal-footer .btn-success:hover {
+    background-color: #6f4e37;
+    border-color: #6f4e37;
+}
+
+.modal-footer .btn-danger {
+    background-color: #a0522d;
+    border-color: #a0522d;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.modal-footer .btn-danger:hover {
+    background-color: #8B4513;
+    border-color: #8B4513;
+}
+
+.modal-footer .btn-secondary {
+    background-color: #e9ecef;
+    border-color: #e9ecef;
+    color: #3f1a01;
+    transition: background-color 0.3s ease;
+}
+
+.modal-footer .btn-secondary:hover {
+    background-color: #d8d8d8;
+    border-color: #d8d8d8;
+}
+</style>
+
+<!-- Bouton pour ouvrir le modal -->
+<button type="button" class="btn mb-3" style="background-color:#3f1a01ff;color:white;" data-bs-toggle="modal" data-bs-target="#ajouterModal">
+    Ajouter une personne
+</button>
+
+<!-- Modal ajout -->
+<div class="modal fade" id="ajouterModal" tabindex="-1" aria-labelledby="ajouterModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ path('app_personne_ajouter') }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="ajouterModalLabel">Ajouter une personne autorisée</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+            <div class="mb-3">
+                <label class="form-label">Nom</label>
+                <input type="text" class="form-control" name="nom" id="inputNom" oninput="this.value = this.value.toUpperCase()" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Prénom</label>
+                <input type="text" class="form-control" name="prenom" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Type</label>
+                <select class="form-select" name="type_personne" required>
+                    <option value="eleve">Élève</option>
+                    <option value="enseignant">Enseignant</option>
+                    <option value="responsable">Responsable</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Matricule</label>
+                <input type="text" class="form-control" name="matricule" oninput="this.value = this.value.toUpperCase()" required>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Ajouter</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<!-- Fin modal -->
+
+<!-- Tableau -->
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Type</th>
+            <th style="text-transform: uppercase;">Matricule</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for personne in personnes %}
+            <tr>
+                <td>{{ personne.id }}</td>
+                <td>{{ personne.nom}}</td>
+                <td>{{ personne.prenom }}</td>
+                <td>{{ personne.type_personne }}</td>
+                <td>{{ personne.matricule}}</td>
+                <td>
+                    <!-- Bouton Modifier -->
+                    <button class="btn btn-sm" style="background-color: #3f1a01ff;color:white;" data-bs-toggle="modal" data-bs-target="#modifierModal{{ personne.id }}">
+                        Modifier
+                    </button>
+
+                    <!-- Bouton Supprimer -->
+                    <button class="btn btn-sm" style="background-color:rgb(150, 93, 53);color:white;" data-bs-toggle="modal" data-bs-target="#supprimerModal{{ personne.id }}">
+                        Supprimer
+                    </button>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">Aucune personne trouvée.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% for personne in personnes %}
+<!-- Modal Modifier -->
+<div class="modal fade" id="modifierModal{{ personne.id }}" tabindex="-1" aria-labelledby="modifierLabel{{ personne.id }}" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ path('personne_autorisee_modifier', { id: personne.id }) }}">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modifierLabel{{ personne.id }}">Modifier</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label>Nom</label>
+            <input type="text" name="nom" class="form-control" value="{{ personne.nom }}" required>
+          </div>
+          <div class="mb-3">
+            <label>Prénom</label>
+            <input type="text" name="prenom" class="form-control" value="{{ personne.prenom }}" required>
+          </div>
+          <div class="mb-3">
+            <label>Type</label>
+            <input type="text" name="type_personne" class="form-control" value="{{ personne.type_personne }}" required>
+          </div>
+          <div class="mb-3">
+            <label>Matricule</label>
+            <input type="text" name="matricule" class="form-control" value="{{ personne.matricule }}" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Enregistrer</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Supprimer -->
+<div class="modal fade" id="supprimerModal{{ personne.id }}" tabindex="-1" aria-labelledby="supprimerLabel{{ personne.id }}" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <form method="post" action="{{ path('personne_autorisee_supprimer', { id: personne.id }) }}">
+        <div class="modal-header">
+          <h5 class="modal-title" id="supprimerLabel{{ personne.id }}">Confirmer la suppression</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          Êtes-vous sûr de vouloir supprimer <strong>{{ personne.nom }} {{ personne.prenom }}</strong> ?
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-danger">Supprimer</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

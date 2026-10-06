@@ -1,0 +1,115 @@
+{% extends 'admin.html.twig' %}
+
+{% block title %}Hello MembreController!{% endblock %}
+
+{% block body %}
+<style>
+body {
+    margin-left: 1cm;
+    margin-right: 1cm;
+    background-color: white;
+}
+/* Personnaliser la couleur du switch activé */
+.form-check-input:checked {
+    background-color: #8B4513;
+    border-color: #8B4513;
+}
+
+/* Optionnel : personnaliser la couleur du "cercle" lors du glissement */
+.form-check-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(139, 69, 19, 0.25);
+}
+
+</style>
+<h1>Listes des personnes inscrit dans l'application</h1>
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Nom</th>
+            <th>Prénom</th>
+            <th>Type personne</th>
+            <th style="text-transform: uppercase;">Matricule</th>
+            <th>Option</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for membre in membre_bibliotheques %}
+<tr>
+    <td>{{ membre.nom }}</td>
+    <td>{{ membre.prenom }}</td>
+    <td>{{ membre.type_personne }}</td>
+    <td>{{ membre.matricule }}</td>
+    <td classe="option">
+      <!-- Bouton d'envoi de message -->
+      <a href="{{ path('app_admin_message', {'id': membre.id}) }}" 
+      class="btn btn-primary btn-sm">Envoyer message</a>
+      <div class="form-check form-switch">
+          <input 
+              class="form-check-input" 
+              type="checkbox" 
+              id="switchEtat{{ membre.id }}" 
+              data-bs-toggle="modal" 
+              data-bs-target="#{{ membre.etat ? 'desactiverModal' ~ membre.id : 'reactiverModal' ~ membre.id }}" 
+              {% if membre.etat %} checked {% endif %}>
+          <label class="form-check-label" for="switchEtat{{ membre.id }}">
+              {{ membre.etat ? 'Activé' : 'Désactivé' }}
+          </label>
+      </div>
+    </td>
+  </tr>
+
+    <!-- Modal de confirmation -->
+<div class="modal fade" id="desactiverModal{{ membre.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <form action="{{ path('desactiver_membre', {'id': membre.id}) }}" method="post">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Confirmation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          Voulez-vous vraiment désactiver le compte de {{ membre.nom }} ?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-danger">Confirmer</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Réactiver -->
+    <div class="modal fade" id="reactiverModal{{ membre.id }}" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog">
+        <form method="post" action="{{ path('reactiver_membre', {'id': membre.id}) }}">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Confirmation</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body">
+              Voulez-vous vraiment <strong>réactiver</strong> le compte de <strong>{{ membre.nom }}</strong> ?
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+              <button type="submit" class="btn btn-success">Confirmer</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+<!-- Modal -->
+
+        {% else %}
+            <tr>
+                <td colspan="4">Aucun membre trouvé.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+{% endblock %}

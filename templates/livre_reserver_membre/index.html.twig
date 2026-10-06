@@ -1,0 +1,32 @@
+{% extends 'membres.html.twig' %}
+
+{% block body %}
+    <div class="container mt-4">
+        <h2>Livre(s) déjà réservé(s)</h2>
+
+        {% if livres is empty %}
+            <p>Aucune réservation trouvée.</p>
+        {% else %}
+            <table class="table table-bordered mt-3">
+                <thead class="thead-dark">
+                    <tr>
+                        <th>Titre</th>
+                        <th>Date de réservation</th>
+                        <th>Date d'accueil</th>
+                        <th>Date de retour</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for livre in livres %}
+                        <tr>
+                            <td>{{ livre.titre }}</td>
+                            <td>{{ livre.date_reservation|date('d/m/Y') }}</td>
+                            <td>{{ livre.date_accueil|date('d/m/Y') }}</td>
+                            <td>{{ livre.date_retour|date('d/m/Y') }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </div>
+{% endblock %}

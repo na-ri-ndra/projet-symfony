@@ -1,0 +1,28 @@
+{% extends 'membres.html.twig' %}
+
+{% block body %}
+<div class="container mt-5">
+    <h4>Réserver un livre</h4>
+
+    <form method="post" class="mt-4">
+        <div class="mb-3">
+            <label class="form-label">Nom du membre</label>
+            <select name="membre_id" class="form-select" disabled>
+                <option value="{{ membre.id }}">{{ membre.nom }} {{ membre.prenom }}</option>
+            </select>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Date de prêt (accueil)</label>
+            <input type="date" name="date_accueil" class="form-control" required>
+        </div>
+
+        <div class="mb-3">
+            <label class="form-label">Date de retour</label>
+            <input type="date" name="date_retour" class="form-control" required>
+        </div>
+
+        <button type="submit" class="btn btn-success">Envoyer la demande</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,405 @@
+{% extends 'admin.html.twig' %}
+
+{% block title %}Hello LivreController!{% endblock %}
+
+{% block body %}
+<body>
+<style>
+body {
+    background-color: white;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #4b3832;
+}
+
+/* Card styles */
+.card {
+    border-color: #e0d8c7 !important; /* Subtle border color from your theme */
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover animation */
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Lifts the card on hover */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); /* Adds a more pronounced shadow on hover */
+}
+
+/* Card content styles */
+.card-body h5 {
+    color: #3f1a01ff; /* Main title color */
+    font-weight: bold;
+    font-size: 1.25rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 2px solid #3f1a01ff; /* A line under the title */
+    padding-bottom: 0.5rem;
+}
+
+.card-body p {
+    color: #6c757d; /* Lighter text for details */
+    margin-bottom: 0.5rem;
+}
+
+.card-body strong {
+    color: #3f1a01; /* Stronger color for labels */
+}
+
+/* Button styles */
+.btn-modifier {
+    background-color: #3f1a01ff;
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-modifier:hover {
+    background-color: #3f1a01ff;
+}
+
+.btn-supprimer {
+    background-color: #3f1a01ff;
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-supprimer:hover {
+    background-color: #3f1a01ff;
+}
+
+/* Badge styles */
+.badge {
+    padding: 0.5em 0.8em;
+    font-size: 0.75em;
+    font-weight: bold;
+    border-radius: 1rem;
+}
+
+.bg-success {
+    background-color: #4CAF50 !important;
+}
+
+.bg-danger {
+    background-color: #F44336 !important;
+}
+/* Style du header de la modale */
+#addModal .modal-header {
+  background-color: #3f1a01ff; /* Un gris très clair pour un contraste subtil */
+  color: #f7f7f7; /* Couleur de la police pour le titre */
+  border-bottom: 2px solid #3f1a01ff; /* Ligne de séparation marron foncé */
+}
+
+/* Style des labels du formulaire */
+#addModal .form-label {
+  color: #3f1a01ff; /* Couleur de la police marron foncé */
+  font-weight: 600; /* Met les labels en gras */
+}
+
+/* Style des champs de formulaire */
+#addModal .form-control,
+#addModal .form-select {
+  border-color: #3f1a01ff; /* Cadre des champs de la même couleur */
+}
+
+/* Style du bouton "Enregistrer" */
+#addModal .btn-primary {
+  background-color: #3f1a01ff; /* Couleur de fond marron foncé */
+  border-color: #3f1a01ff; /* Cadre du bouton de la même couleur */
+}
+
+/* Style du bouton "Enregistrer" au survol */
+#addModal .btn-primary:hover {
+  background-color: #5a2e15; /* Une nuance légèrement plus claire pour l'effet de survol */
+  border-color: #5a2e15;
+}
+
+/* Style du footer de la modale */
+#addModal .modal-footer {
+  background-color: #f7f7f7; /* Un gris très clair pour un contraste subtil */
+  border-top: 2px solid #3f1a01ff; /* Ligne de séparation marron foncé */
+}
+</style>
+<h1>Liste des Livres</h1>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Bouton à gauche -->
+    <button class="btn" style="background-color: #5a2e15;color:white;" data-bs-toggle="modal" data-bs-target="#addModal">
+      Ajouter un livre
+    </button>
+
+    <!-- Barre de recherche à droite -->
+    <input type="text" id="searchInput" class="form-control w-50" placeholder="Rechercher un titre de livre..." onkeyup="filterLivre()">
+</div>
+
+<div class="row">
+  {% for livre in livres %}
+  <div class="col-md-3 mb-4">
+      <div class="card shadow-sm h-100" style="border: 1px solid #3f1a01ff">
+          <div class="card-body">
+              <h5>{{ livre.titre }}</h5>
+                <p><strong>Auteur :</strong> {{ livre.auteur }}</p>
+                <p><strong>Exemplaires :</strong> {{ livre.nombre_exemplaire }}</p>
+                <p><strong>Exemplaires :</strong> {{ livre.code_etagere }}</p>
+                <p>
+                  <strong>Disponibilité :</strong>
+                  {% if livre.nombre_exemplaire > 0 %}
+                      <span class="badge bg-success">Disponible</span> {# Le badge est déjà vert #}
+                      {# Si tu veux aussi le texte vert juste à côté du badge, tu peux faire: #}
+                      {# <span class="text-success">Disponible</span> #}
+                  {% else %}
+                      <span class="badge bg-danger">Indisponible</span> {# Le badge est déjà rouge #}
+                      {# Si tu veux aussi le texte rouge juste à côté du badge, tu peux faire: #}
+                      {# <span class="text-danger">Indisponible</span> #}
+                  {% endif %}
+              </p>
+              <button class="btn btn-sm me-1" style="background-color: #3f1a01ff;color:white;" data-bs-toggle="modal" data-bs-target="#editModal{{ livre.id }}">
+                  Modifier
+              </button>
+              <button class="btn btn-sm" style="background-color:rgb(150, 93, 53);color:white;" data-bs-toggle="modal" data-bs-target="#deleteModal{{ livre.id }}">
+                  Supprimer
+              </button>
+          </div>
+      </div>
+</div>
+
+            <!-- Modal de modification -->
+<div class="modal fade" id="editModal{{ livre.id }}" tabindex="-1" aria-labelledby="ajouterLivreModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl"> <!-- Changement ici -->
+    <div class="modal-content">
+      <form action="{{ path('livre_modifier', { 'id': livre.id }) }}" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title" id="ajouterLivreModalLabel">Ajouter un livre</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="titre" class="form-label">Titre</label>
+              <input type="text" name="titre" value="{{ livre.titre }}" class="form-control" required>
+            </div>
+
+            <div class="col-md-4">
+              <label for="auteur" class="form-label">Auteur</label>
+              <input type="text" name="auteur" value="{{ livre.auteur }}" class="form-control" required>
+            </div>
+
+            <div class="col-md-4">
+              <label for="isbn" class="form-label">ISBN</label>
+              <input type="text" name="isbn" value="{{ livre.isbn }}" class="form-control">
+            </div>
+
+            <div class="col-md-4">
+              <label for="etat" class="form-label">État</label>
+              <select name="etat" class="form-select">
+    <option value="Neuf" {% if livre.etat == 'Neuf' %}selected{% endif %}>Neuf</option>
+    <option value="Bon" {% if livre.etat == 'Bon' %}selected{% endif %}>Bon</option>
+    <option value="Usé" {% if livre.etat == 'Usé' %}selected{% endif %}>Usé</option>
+  </select>
+            </div>
+
+            <div class="col-md-4">
+              <label for="disponibilite" class="form-label">Disponibilité</label>
+              <select name="disponibilite" value="{{ livre.disponibilite }}" class="form-select">
+                <option value="0">Disponible</option>
+                <option value="1">Emprunté</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label for="nombre_exemplaire" class="form-label">Nombre d'exemplaire</label>
+              <input type="number" name="nombre_exemplaire" value="{{ livre.nombre_exemplaire }}" class="form-control" min="1" required>
+            </div>
+
+            <div class="col-md-4">
+              <label for="etagere_id" class="form-label">Étagère</label>
+              <select name="etagere_id" value="{{ livre.etagere_id }}" class="form-select" required>
+                <option value="">-- Choisir une étagère --</option>
+                {% for etagere in etageres %}
+                  <option value="{{ etagere.id }}">{{ etagere.code_etagere }} ({{ etagere.emplacement }})</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label for="genre_id" class="form-label">Genre</label>
+              <select name="genre_id" value="{{ livre.genre_id }}" class="form-select" required>
+                <option value="">-- Choisir un genre --</option>
+                {% for genre in genres %}
+                  <option value="{{ genre.id }}">{{ genre.genre }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label for="editeur" class="form-label">Éditeur</label>
+              <input type="text" name="editeur" value="{{ livre.editeur }}" class="form-control">
+            </div>
+
+            <div class="col-12">
+              <label for="resumer" class="form-label">Résumé</label>
+              <textarea name="resumer" rows="4" value="{{ livre.resumer }}" class="form-control"></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Enregistrer</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ❌ Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal{{ livre.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ livre.id }}" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ path('livre_supprimer', {'id': livre.id}) }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-danger" id="deleteModalLabel{{ livre.id }}">Confirmer la suppression</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <p>Voulez-vous vraiment supprimer le livre <strong>{{ livre.titre }}</strong> ?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+        {% else %}
+            <p>Aucun livre trouvé.</p>
+        {% endfor %}
+</div>
+
+<!-- Modal Ajouter Livre -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title" id="addModalLabel">Ajouter un livre</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+      </div>
+
+      <form action="{{ path('livre_ajouter') }}" method="POST">
+        <div class="modal-body">
+
+          <!-- Ligne 1 -->
+          <div class="row g-3">
+            <div class="col-md-2">
+              <label class="form-label">Titre</label>
+              <input type="text" class="form-control" name="titre" required>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Auteur</label>
+              <input type="text" class="form-control" name="auteur" required>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Éditeur</label>
+              <input type="text" class="form-control" name="editeur" required>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">ISBN</label>
+              <input type="text" class="form-control" name="isbn" required>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Genre</label>
+              <select name="genre_id" id="genre_id" class="form-select" required>
+                {% for genre in genres %}
+                  <option value="{{ genre.id }}">{{ genre.genre }}</option>
+                {% endfor %}
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Ligne 2 -->
+          <div class="row g-3 mt-2">
+            <div class="col-md-2">
+              <label class="form-label">Nb Exemplaires</label>
+              <input type="number" class="form-control" name="nb_exemplaire" min="1" required>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Étagère</label>
+              <select class="form-select" name="etagere_id" required>
+                {% for etagere in etageres %}
+                  <option value="{{ etagere.id }}">{{ etagere.code_etagere }} ({{ etagere.emplacement }})</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">État</label>
+              <select class="form-select" name="etat" required>
+                <option value="bon">Bon</option>
+                <option value="neuf">Neuf</option>
+                <option value="use">Usé</option>
+              </select>
+            </div>
+            <div class="col-md-2">
+              <label class="form-label">Disponibilité</label>
+              <input type="text" class="form-control" name="disponibilite" value="disponible" readonly>
+            </div>
+            <div class="col-md-2 d-none" id="nouveauGenreDiv">
+              <label class="form-label">Nouveau genre</label>
+              <input type="text" class="form-control" name="nouveau_genre">
+            </div>
+          </div>
+
+          <!-- Résumé -->
+          <div class="row g-3 mt-2">
+            <div class="col-12">
+              <label class="form-label">Résumé</label>
+              <textarea class="form-control" name="resume" rows="4" required></textarea>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+// Afficher le champ "Nouveau genre" si "Autre" est choisi
+document.getElementById('genre_id').addEventListener('change', function () {
+    let div = document.getElementById('nouveauGenreDiv');
+    if (this.value === 'autre') {
+        div.classList.remove('d-none');
+    } else {
+        div.classList.add('d-none');
+    }
+});
+</script>
+
+<script>
+function filterLivre() {
+    const input = document.getElementById("searchInput");
+    const filter = input.value.toLowerCase();
+    const cards = document.querySelectorAll(".card");
+
+    cards.forEach(card => {
+        const titre = card.querySelector(".card-title")?.textContent.toLowerCase() || '';
+        const texte = card.querySelector(".card-text")?.textContent.toLowerCase() || '';
+
+        if (titre.includes(filter) || texte.includes(filter)) {
+            card.parentElement.style.display = ""; // Montre la carte
+        } else {
+            card.parentElement.style.display = "none"; // Cache la carte
+        }
+    });
+}
+</script>
+
+
+<script src="/js/bootstrap.bundle.min.js"></script>
+
+</body>
+{% endblock %}

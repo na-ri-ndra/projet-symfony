@@ -1,0 +1,143 @@
+{% extends 'membres.html.twig' %}
+
+{% block title %}Hello MembreLivreController!{% endblock %}
+
+{% block body %}
+<style>
+body {
+    background-color: white; /* Fond gris très clair */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #4b3832; /* Couleur de texte principale */
+}
+.scrollable-container {
+    height: 350px; /* Adjust this height as needed */
+    overflow-y: auto; /* Adds a vertical scrollbar when content overflows */
+    overflow-x: hidden; /* Hides horizontal scrollbar */
+    /* You might also want to add some padding if your design requires it */
+    padding: 15px;
+    border: 1px solid #3f1a01ff; 
+    border-radius : 4px;
+    margin-top:0px;
+}
+</style>
+
+<h2>Sélectionner les livres à réserver</h2>
+
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label }}"> {# La classe CSS peut être 'alert-success', 'alert-error', etc. #}
+            {{ message }}
+        </div>
+    {% endfor %}
+{% endfor %}
+
+<form action="{{ path('app_reservation_confirm', {'reservationId': reservationId}) }}" method="post">
+    <p>Veuillez sélectionner jusqu’à {{ nb_livre }} livre(s).</p>
+    <div class="scrollable-container">
+    <div class="row">
+        {% for livre in livres %}
+            <div class="col-md-3 mb-4">
+                <div class="card shadow-sm h-100" style="border: 1px solid #3f1a01ff">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ livre.titre }}</h5>
+                        <p class="card-text">
+                            <strong>{{ livre.auteur }}</strong> <br>
+                            <strong>{{ livre.editeur }}</strong> <br>
+                            <strong>{{ livre.isbn }}</strong> <br>
+                            <strong>Nombre exemplaire : {{ livre.nombre_exemplaire }}</strong> <br>
+                            <input type="checkbox" name="livres[]" value="{{ livre.id }}" class="livre-checkbox">
+                            {{ livre.titre }} — {{ livre.auteur }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <p>Aucun livre trouvé.</p>
+        {% endfor %}
+    </div>
+</div>
+    <button type="button" class="btn mt-3" style="background-color:#3f1a01ff;color:white;" data-bs-toggle="modal" data-bs-target="#confirmationModal">
+        Confirmer la réservation
+    </button>
+</form>
+
+<!-- Modal -->
+<div class="modal fade" id="confirmationModal" tabindex="-1" aria-labelledby="confirmationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form action="{{ path('membre_reservation_envoyer', {'reservationId': reservationId}) }}" method="POST">
+        <div class="modal-header">
+          <h5 class="modal-title" id="confirmationModalLabel">Confirmer la réservation</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+        <p><strong>Membre :</strong> {{ membre.nom }} {{ membre.prenom }}</p><br>
+          <ul id="livresSelectionnes">
+            <!-- JS remplira les titres ici -->
+          </ul><br>
+
+          <div class="mb-3">
+            <label for="dateRetrait" class="form-label">Date de retrait</label>
+            <input type="date" name="dateRetrait" id="dateRetrait" class="form-control" required>
+          </div><br>
+
+          <div class="mb-3">
+            <label for="dateRetour" class="form-label">Date de retour</label>
+            <input type="date" name="dateRetour" id="dateRetour" class="form-control" required>
+          </div><br>
+
+          <!-- Champs cachés pour passer les ID livres sélectionnés -->
+          <div id="livresHiddenInputs"></div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+          <button type="submit" class="btn btn-success">Envoyer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.querySelector('[data-bs-target="#confirmationModal"]').addEventListener('click', function () {
+    const checkboxes = document.querySelectorAll('.livre-checkbox:checked');
+    const livresList = document.getElementById('livresSelectionnes');
+    const livresHiddenInputs = document.getElementById('livresHiddenInputs');
+
+    livresList.innerHTML = '';
+    livresHiddenInputs.innerHTML = '';
+
+    checkboxes.forEach(cb => {
+      const titre = cb.closest('.card-body').querySelector('.card-title').textContent;
+      const li = document.createElement('li');
+      li.textContent = titre;
+      livresList.appendChild(li);
+
+      // Crée un input hidden pour l'ID du livre
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = 'livres[]';
+      input.value = cb.value;
+      livresHiddenInputs.appendChild(input);
+    });
+  });
+</script>
+
+<script>
+    const maxCheckbox = {{ nb_livre }};
+    const checkboxes = document.querySelectorAll('.livre-checkbox');
+
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+            const checkedCount = document.querySelectorAll('.livre-checkbox:checked').length;
+
+            checkboxes.forEach(cb => {
+                if (!cb.checked) {
+                    cb.disabled = checkedCount >= maxCheckbox;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

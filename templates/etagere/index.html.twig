@@ -1,0 +1,294 @@
+{% extends 'admin.html.twig' %}
+
+{% block title %}Hello EtagereController!{% endblock %}
+
+{% block body %}
+<style>
+body {
+    background-color: white; /* Fond gris très clair */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #343a40;
+    margin: 1cm;
+}
+
+h1 {
+    color: #3f1a01; /* Couleur du titre principal */
+    border-bottom: 2px solid #8B4513; /* Ligne de séparation */
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+
+/* Bouton d'ajout et barre de recherche */
+.btn-ajouter-etagere {
+    background-color: #3f1a01; /* Bouton d'ajout de la couleur principale */
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+}
+
+.btn-ajouter-etagere:hover {
+    background-color: #5a2e0e; /* Assombrir au survol */
+}
+
+.form-control {
+    border-color: #d2b48c; /* Bordure des champs dans les tons du thème */
+    color: #3f1a01;
+}
+
+.form-control:focus {
+    border-color: #8B4513;
+    box-shadow: 0 0 0 0.25rem rgba(139, 69, 19, 0.25);
+}
+
+/* Cartes d'étagères */
+.card {
+    border-color: #e0d8c7;
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px); /* Effet de survol */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.card-title {
+    color: #3f1a01;
+    font-weight: bold;
+}
+
+.card-text {
+    color: #4b3832;
+}
+
+.btn-modifier {
+    background-color: #8B4513;
+    color: white;
+    border: none;
+}
+
+.btn-supprimer {
+    background-color: #a0522d;
+    color: white;
+    border: none;
+}
+* Style des modales */
+.modal-content {
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    background-color: #f1e9df;
+    border-bottom: 2px solid #8B4513;
+    color: #3f1a01;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.modal-title {
+    color: #3f1a01;
+    font-weight: bold;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+/* Boutons dans le footer des modales */
+.modal-footer .btn-primary, .modal-footer .btn-success {
+    background-color: #8B4513;
+    border-color: #8B4513;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.modal-footer .btn-primary:hover, .modal-footer .btn-success:hover {
+    background-color: #6f4e37;
+    border-color: #6f4e37;
+}
+
+.modal-footer .btn-danger {
+    background-color: #a0522d;
+    border-color: #a0522d;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.modal-footer .btn-danger:hover {
+    background-color: #8B4513;
+    border-color: #8B4513;
+}
+
+.modal-footer .btn-secondary {
+    background-color: #e9ecef;
+    border-color: #e9ecef;
+    color: #3f1a01;
+}
+</style>
+<h1>Liste des Étagères</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <!-- Bouton à gauche -->
+    <button class="btn" data-bs-toggle="modal" data-bs-target="#addModal" style="background-color: #3f1a01ff;color:white;">
+    Ajouter une étagère
+    </button>
+
+    <!-- Barre de recherche à droite -->
+    <input type="text" id="searchInput" class="form-control w-50" placeholder="Rechercher le nom d'etagère..." onkeyup="filterEtagere()">
+</div>
+
+<!-- 🧱 Grille d'étagères -->
+<div class="container">
+    <div class="row" id="etagereContainer">
+        {% for e in etagereList %}
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4 etagere-item">
+            <div class="card shadow-sm h-100">
+                <div class="card-body d-flex flex-column">
+                    <h5 class="card-title">{{ e.code_etagere }}</h5>
+                    <p class="card-text flex-grow-1">
+                        <strong>Emplacement :</strong> {{ e.emplacement }}<br>
+                        <strong>Capacité max :</strong> {{ e.capacite_max }}<br>
+                        <strong>Actuel :</strong> 
+                        {% if e.nombre_livres_actuel > e.capacite_max %}
+                        <span class="text-danger fw-bold">{{ e.nombre_livres_actuel }}</span> 
+                        <i>(Dépassement)</i>
+                    {% else %}
+                        {{ e.nombre_livres_actuel }}
+                    {% endif %}
+                    </p>
+                    <div>
+                        <button class="btn btn-sm me-1" style="background-color: #3f1a01ff;color:white;" data-bs-toggle="modal" data-bs-target="#editModal{{ e.id }}">
+                            Modifier
+                        </button>
+                        <button class="btn btn-sm" style="background-color:rgb(150, 93, 53);color:white;" data-bs-toggle="modal" data-bs-target="#deleteModal{{ e.id }}">
+                            Supprimer
+                        </button>
+                    </div>
+                </div>
+    </div>
+</div>
+
+          <!-- Modal de modification -->
+<div class="modal fade" id="editModal{{ e.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ e.id }}" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ path('app_etagere_modifier', {'id': e.id}) }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel{{ e.id }}">Modifier l’étagère</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label>Code étagère</label>
+            <input type="text" name="code_etagere" class="form-control" value="{{ e.code_etagere }}" required>
+          </div>
+          <div class="mb-3">
+            <label>Emplacement</label>
+            <input type="text" name="emplacement" class="form-control" value="{{ e.emplacement }}">
+          </div>
+          <div class="mb-3">
+            <label>Capacité maximale</label>
+            <input type="number" name="capacite_max" class="form-control" min="0" value="{{ e.capacite_max }}">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Mettre à jour</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ❌ Modal de confirmation de suppression -->
+<div class="modal fade" id="deleteModal{{ e.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ e.id }}" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ path('app_etagere_supprimer', {'id': e.id}) }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-danger" id="deleteModalLabel{{ e.id }}">Confirmer la suppression</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <p>Voulez-vous vraiment supprimer l’étagère <strong>{{ e.code_etagere }}</strong> ?</p>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-danger">Oui, supprimer</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+        {% else %}
+            <p>Aucune étagère trouvée.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- ✅ Modal d'ajout -->
+<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" action="{{ path('app_etagere_ajouter') }}">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addModalLabel">Ajouter une étagère</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-3">
+            <label>Code étagère</label>
+            <input type="text" name="code_etagere" class="form-control" required>
+          </div>
+          <div class="mb-3">
+            <label>Emplacement</label>
+            <input type="text" name="emplacement" class="form-control">
+          </div>
+          <div class="mb-3">
+            <label>Capacité maximale</label>
+            <input type="number" name="capacite_max" class="form-control" min="0">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Enregistrer</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- 🔎 Script JS pour la recherche -->
+<script>
+function filterEtagere() {
+    let input = document.getElementById('searchInput').value.toLowerCase();
+    let items = document.querySelectorAll('.etagere-item');
+
+    items.forEach(item => {
+        let text = item.textContent.toLowerCase();
+        item.style.display = text.includes(input) ? 'block' : 'none';
+    });
+}
+</script>
+<script>
+    function filterEtagere() {
+        const input = document.getElementById("searchInput");
+        const filter = input.value.toLowerCase();
+        const etageres = document.querySelectorAll(".etagere-item");
+
+        etageres.forEach(etagere => {
+            const titre = etagere.querySelector(".card-title")?.textContent.toLowerCase() || '';
+            const texte = etagere.querySelector(".card-text")?.textContent.toLowerCase() || '';
+
+            if (titre.includes(filter) || texte.includes(filter)) {
+                etagere.style.display = ""; // Affiche l'étagère
+            } else {
+                etagere.style.display = "none"; // Cache l'étagère
+            }
+        });
+    }
+</script>
+
+
+{% endblock %}
